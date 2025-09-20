@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
+
+
+
 
 enum TokenType
 {
@@ -8,21 +12,15 @@ enum TokenType
     INT32,
     INT64,
     STRING,
-    BOOL,
-    BYTE,
-    CHAR,
 
     INT16_VAR,
     INT32_VAR,
     INT64_VAR,
     STRING_VAR,
-    BOOL_VAR,
-    BYTE_VAR,
-    CHAR_VAR,
 
     VAR,
     ARRAY,
-    NAME,
+    ID,
 
     LEFT_BRCKET,
     RIGHT_BRCKET,
@@ -33,24 +31,19 @@ enum TokenType
     QUOTES,
     COLON,
     SEMICOLON,
+
+    END_OF_LINE,
 };
 
 enum nodes
 {
-	NONE,
-        VAR,
-        PRINT,
-        NAME,
-        ARGUMENTS,
-	EQUALS,
-	SEMICOLON,
-        TYPE_ID,
-	TYPE,
-        VALUE,
-        BRECKETS,
-        LEFT_BRECKET,
-        RIGHT_BRECKET,
-        EQUALS,
+	VAR_NODE,
+	ID_NODE,
+	TYPE_ID_NODE,
+	STRING_NODE,
+
+	COLON_NODE,
+	SEMICOLON_NODE,
 };
 
 
@@ -155,7 +148,7 @@ int main()
 class node
 {
 
-    nodes parent; 
+    static node parent; 
     nodes type;
     nodes leftSubsidiary;
     nodes rightSubsidiary;
@@ -163,19 +156,27 @@ class node
     std::string value;
 };
 
-class cheker
+class parser
 {
-	std::vector<node> ast;
-
-	bool checkLine(std::vector<token> lineVector)
+	std::map<TokenType, std::vector<TokenType>> correctNextTokens
 	{
-		for(short i = 0; i < lineVector.size(); i++)
+		{VAR, {ID}}, 
+		{ID, {LEFT_BRCKET, COLON}},
+		{COLON, {INT16_VAR, INT32_VAR, INT64_VAR, STRING_VAR}},
+		{INT16_VAR, {EQUALS, END_OF_LINE}},
+		{INT32_VAR, {EQUALS, END_OF_LINE}},
+		{INT64_VAR, {EQUALS, END_OF_LINE}},
+		{STRING_VAR, {EQUALS, END_OF_LINE}},
+
+	};
+
+	bool isLineCorrect(std::vector<token> checkingTokens)
+	{
+		for(short i = 0; i <  checkingTokens.size(); i++)
 		{
-			if (lineVector[i].GetValue() == "var")
-			{
-				ast.push_back(node(nodes.NONE, nodes.VAR, nodes.NAME, nodes.EQUALS, "var")); 
-			
-			}
+			return false;
 		}
-	}
+	};
+
+
 };
