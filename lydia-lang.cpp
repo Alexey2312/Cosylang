@@ -1,30 +1,34 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <string_view>
 #include <map>
-
-
-
 
 enum TokenType
 {
+    TYPE_ID,
     INT16,
     INT32,
     INT64,
     STRING,
 
-    INT16_VAR,
-    INT32_VAR,
-    INT64_VAR,
-    STRING_VAR,
+    TYPE_NAME,
+    VALUE,
+
 
     VAR,
     ARRAY,
     ID,
 
+    FUNC,
+    PROC,
+    FUNCTION_CALL,
+
+    ARGUMENTS,
+
     LEFT_BRCKET,
     RIGHT_BRCKET,
-
+	
     PRINT,
     WRITE,
     EQUALS,
@@ -34,20 +38,6 @@ enum TokenType
 
     END_OF_LINE,
 };
-
-enum nodes
-{
-	VAR_NODE,
-	ID_NODE,
-	TYPE_ID_NODE,
-	STRING_NODE,
-
-	COLON_NODE,
-	SEMICOLON_NODE,
-};
-
-
-
 
 class token
 {
@@ -68,115 +58,56 @@ public:
 };
 
 
+struct checker
+{
+	std::string correctString;
+	TokenType correctToken;
+	bool check(std::string_view checkingString) const {return correctString == checkingString; }
+	TokenType getToken() {return correctToken; }
+	std::string getValue() {return correctString; };
+	checker(std::string correct, TokenType selectedToken) : correctString(std::move(correct)), correctToken(selectedToken) {}
 
+};
 
+std::vector<checker> tokensVector;
 
 class Lexer
 {
-    short position = 0;
-
-    std::string input;
-
-    std::vector<char> word;
-    TokenType type;
-    std::string value;
-
-    char character;
-
-public:
-    std::vector<token> tokenize(std::string line)
-    {
-        std::vector<token> outVector;
-        std::vector<char> lineVector(line.begin(), line.end());
-
-        for(int i = 0; i < lineVector.size(); i++)
-        {
-            if(std::string(word.begin(), word.end()) == "")
-            {
-                outVector.push_back(token(SEMICOLON, ";"));
-                word.clear();
-                return outVector;
-            }
-            else if (std::string(word.begin(), word.end()) == ":")
-            {
-                outVector.push_back(token(COLON, ":"));
-                word.clear();
-            }
-            else if (std::string(word.begin(), word.end()) == "\"")
-            {
-                outVector.push_back(token(QUOTES, "\""));
-                word.clear();
-            }
-            else if (std::string(word.begin(), word.end()) == std::string("\""))
-            {
-                outVector.push_back(token(QUOTES, "\""));
-                word.clear();
-            }
-            else if (std::string(word.begin(), word.end()) == "var")
-            {
-                outVector.push_back(token(VAR, "var"));
-                std::cout << "Нашёл токен var";
-                word.clear();
-            }
-            else
-            {
-                if (outVector[i - 1].GetType() == QUOTES || outVector[i - 1].GetType() == STRING)
-                {
-                    word.push_back(lineVector[i]);
-                }
-                else
-                {
-                    std::cout << "ERROR, unknow token: " << lineVector[i];
-                }
-            }
-        };
-        return outVector;
-    }
-};
-
-int main()
-{
-    Lexer lexerObject;
-    std::string checkingToken = "var";
-    std::vector<token> checkingVector;
-    checkingVector = lexerObject.tokenize("var");
-    std::cout << checkingVector[0].GetValue();
-    std::cout << "hi!";
-    return 0;
-};
-
-class node
-{
-
-    static node parent; 
-    nodes type;
-    nodes leftSubsidiary;
-    nodes rightSubsidiary;
-
-    std::string value;
-};
-
-class parser
-{
-	std::map<TokenType, std::vector<TokenType>> correctNextTokens
+	std::vector<token> tokenize(std::string line)
 	{
-		{VAR, {ID}}, 
-		{ID, {LEFT_BRCKET, COLON}},
-		{COLON, {INT16_VAR, INT32_VAR, INT64_VAR, STRING_VAR}},
-		{INT16_VAR, {EQUALS, END_OF_LINE}},
-		{INT32_VAR, {EQUALS, END_OF_LINE}},
-		{INT64_VAR, {EQUALS, END_OF_LINE}},
-		{STRING_VAR, {EQUALS, END_OF_LINE}},
-
-	};
-
-	bool isLineCorrect(std::vector<token> checkingTokens)
-	{
-		for(short i = 0; i <  checkingTokens.size(); i++)
+		std::vector<token> outVector;
+		std::vector<char> word;
+		word.push_back(line[0]);	
+		for(int i = 0; i < line.size(); i++)
 		{
-			return false;
-		}
+			for(int tokensI = 0; tokensI < tokensVector.size(); tokensI++)	
+			{
+				std::string checkingString(word.begin(), word.end());
+
+				if(tokensVector[i].check(checkingString) == true)
+				{
+					outVector.push_back(token(tokensVector[i].getToken(), tokensVector[i].getValue()));
+					break;
+				}
+				else if (i < line.size() )
+				{
+					word.push_back(line[i + 1]);
+				}
+				else
+				{
+					std::string idText(word.begin(), word.end());	
+					outVector.push_back(token(ID, idText));	
+
+				};
+
+			};
+		};
+
+		return outVector;
+
+
+
+
 	};
-
-
 };
+
