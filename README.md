@@ -1,2 +1,1 @@
-# LydiaLang
-My first programming languare on C++. And my first project.
+# Cosyla - programming language of future 
