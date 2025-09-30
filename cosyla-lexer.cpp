@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <map>
+using namespace std;
 
 enum TokenType
 {
@@ -58,6 +59,8 @@ public:
 };
 
 
+
+
 struct checker
 {
 	std::string correctString;
@@ -69,10 +72,11 @@ struct checker
 
 };
 
-std::vector<checker> tokensVector;
+std::vector<checker> tokensVector = {checker(";", SEMICOLON)} ;
 
 class Lexer
 {
+	public:
 	std::vector<token> tokenize(std::string line)
 	{
 		std::vector<token> outVector;
@@ -105,9 +109,65 @@ class Lexer
 
 		return outVector;
 
-
-
-
 	};
 };
 
+struct Node;
+
+struct Node
+{
+	Node* nodeParent = nullptr;
+	std::vector<Node*> subsidiaryNodes;
+	
+	TokenType nodeType;
+	std::string nodeValue;
+
+	void setParent(Node* newParent) {nodeParent = newParent; }
+	Node* getParent() {return nodeParent; }
+
+	void setChildren(vector<Node*> newChildren) {subsidiaryNodes = newChildren; }
+	vector<Node*> getChildren() {return subsidiaryNodes; }
+
+	Node(Node* parentOfNode, std::vector<Node*> subsidiary, TokenType type, std::string value) : nodeParent(parentOfNode), subsidiaryNodes(subsidiary), nodeType(type) {}
+
+};
+
+
+
+class Parser
+{
+	map<TokenType, int> priorityOfTokens
+	{
+		{FUNCTION_CALL, 10},
+	//	{DOT, 11},
+		{TYPE_ID, 8},
+		{ID, 9},
+		{ARGUMENTS, 9},
+
+	};
+	
+	vector<Node> convertToNodes(vector<token> tokensVector)
+	{
+		vector<Node> outVector;
+
+		for(int tokensI = 0; tokensI < tokensVector.size(); tokensI++)
+		{
+			outVector.push_back(Node(nullptr, {nullptr}, tokensVector[tokensI].GetType(), tokensVector[tokensI].GetValue()));
+		};
+		return outVector;
+	};
+
+public:
+	void buildAst(vector<token> inputTokens)
+	{
+		vector<Node> Nodes = convertToNodes(inputTokens);
+		
+	};
+};
+
+int main()
+{
+	Lexer* testingVector = new Lexer;
+	testingVector -> tokenize(";");
+	return 0;
+};
