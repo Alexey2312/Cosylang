@@ -1,1 +1,1 @@
-# Cosyla - programming language of future 
+# Cosylang - component systems programming language 
