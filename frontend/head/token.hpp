@@ -1,6 +1,4 @@
 #pragma once
-
-#include <vector>
 #include <string>
 
 enum TokenType
@@ -24,12 +22,18 @@ enum TokenType
 
     ARGUMENTS,
 
-    LEFT_BRCKET,
-    RIGHT_BRCKET,
+    LEFT_PAREN,
+    RIGHT_PAREN,
+
+    PLUS,
+    MINUS,
+    MUL,
+    DIV,
+
 
     PRINT,
     WRITE,
-    EQUALS,
+    EQUAL,
     QUOTES_TOKEN,
     COLON,
     SEMICOLON,
@@ -39,20 +43,15 @@ enum TokenType
 
 struct token
 {
+private:
     TokenType type;
-    std::vector<char> value;
+    std::string value;
 public:
 
-    TokenType getType()
-    {
-        return type;
-    };
+    TokenType getType() {return type;};
 
-    std::vector<char> getValue()
-    {
-        return value;
-    };
+    std::string getValue() {return value;};
 
-    token(TokenType tokenType, std::vector<char> tokenValue);
+    token(TokenType tokenType, std::string tokenValue) : type(tokenType), value(tokenValue) {};
 
 };

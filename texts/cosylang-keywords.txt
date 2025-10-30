@@ -1,0 +1,17 @@
+import
+func
+return
+var
+const
+for, *
+while,
+if,
+else,
+else if, *
+print *
+write
+component, *
+body,
+service,
+struct,
+enum,
