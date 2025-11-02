@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "algorithms/sillySearch.hpp"
+#include <iostream>
 #include "token.hpp"
 
 
@@ -19,11 +19,9 @@ class Node
     TokenType type;
     std::string value;
     int priority;
-
-    OperationType operation;
-
-    Node* parent;
     std::vector<Node*> children;
+    Node* parent = nullptr;
+    OperationType operation;
 
 public:
     Node(TokenType type, std::string value, int priority, std::vector<Node*> children, Node* parent, OperationType operation) : type(type), value(value), priority(priority), children(children), parent(parent), operation(operation) {}
@@ -33,14 +31,22 @@ public:
     std::string getValue() const {return value;}
 
     Node* getParent() const {return parent;}
-    void setParent(Node* parent) {parent = parent;}
+    void setParent(Node* newParent) {parent = newParent;}
 
     std::vector<Node*> getChildren() const {return children;}
     void addChild(Node* child) {children.push_back(child);}
 
     int getPriority() const {return priority;}
+    void setPriority(int newPriority) {priority = newPriority;}
 
-    void removeChild(Node* child)
+    OperationType getOperationType() const {return operation;}
+    void setOperationType(OperationType newOperationType) {operation = newOperationType;}
+
+    void printChildren() const
     {
-    };
+        for (const auto& child : children)
+        {
+            std::cout << value + " children: " + child->getValue() << std::endl;
+        }
+    }
 };

@@ -1,36 +1,25 @@
 #include "../head/lexer.hpp"
 #include "../head/token.hpp"
-#include <iostream>
+#include "../head/algorithms/sillySearch.hpp"
+#include <stdexcept>
 #include <vector>
 #include <string>
+#include <iostream>
 
-std::string convertCharVectorToString(std::vector<char> inputVector)
+std::string convertCharVectorToString(const std::vector<char>& inputVector)
 {
-	std::string outString;
+     return std::string(inputVector.begin(), inputVector.end());
+}
 
-	for(int convertingElement = 0; convertingElement < inputVector.size(); convertingElement++)
-	{
-		outString.push_back(inputVector[convertingElement]);
-	};
-
-	return outString;
-};
-
-std::vector<char> convertStringToCharVector(std::string inputString)
+std::vector<char> convertStringToCharVector(const std::string& inputString)
 {
-	std::vector<char> outVector;
-
-	for(int convertingElement = 0; convertingElement < inputString.size(); convertingElement++)
-	{
-		outVector.push_back(inputString[convertingElement]);
-	};
-
-	return outVector;
-};
+    return std::vector<char>(inputString.begin(), inputString.end());
+}
 
 struct checker
 {
 	std::string correctString;
+
 	TokenType correctToken;
 	token outToken = token(correctToken, correctString);
 
@@ -50,14 +39,14 @@ enum LineTypes
 	ID,
 };
 
-std::vector<checker> tokensVector = {checker(":", COLON)} ;
+std::vector<checker> tokensVector = {checker(":", TokenType::COLON)} ;
 
 
 
 std::vector<token> Lexer::tokenize(std::string line)
 {
-	char lastChar;
 	char nextChar;
+	char lastChar;
 
 	std::vector<char> lineVector = convertStringToCharVector(line);
 	LineTypes wordType = OTHER;
@@ -65,16 +54,18 @@ std::vector<token> Lexer::tokenize(std::string line)
 	std::vector<token> outVector;
 	std::vector<char> word;
 
-	for(int checkingChar = 0; checkingChar < lineVector.size(); checkingChar++)
+	for(unsigned int checkingChar = 0; checkingChar < lineVector.size(); checkingChar++)
 	{
-		if (line[checkingChar + 1] <= lineVector.size())
+		if (sillySearch(lineVector, lineVector[checkingChar + 1]) <= lineVector.size())
 		{
 			nextChar = lineVector[checkingChar + 1];
-		};
+		}
+		else
+		{
 
+		}
 
-
-		for(int workingChecker = 0; workingChecker < tokensVector.size(); workingChecker++)
+		for(unsigned int workingChecker = 0; workingChecker < tokensVector.size(); workingChecker++)
 		{
 			if (tokensVector[workingChecker].check(convertCharVectorToString(word)) == true)
 			{
@@ -91,7 +82,7 @@ std::vector<token> Lexer::tokenize(std::string line)
 				{
 					wordType = STRING;
 				}
-				else if (tokensVector[workingChecker].getToken() == QUOTES_TOKEN && wordType == QUOTES)
+				else if (tokensVector[workingChecker].getToken() == TokenType::QUOTES_TOKEN && wordType == QUOTES)
 				{
 					wordType = OTHER;
 					outVector.push_back(token(STRING_TYPE, convertCharVectorToString(word)));
@@ -113,7 +104,7 @@ std::vector<token> Lexer::tokenize(std::string line)
 				}
 				else
 				{
-					lastChar = word[word.size()];
+					lastChar = word.back();
 					word.push_back(line[word.size()]);
 				};
 			};
@@ -124,24 +115,19 @@ std::vector<token> Lexer::tokenize(std::string line)
 };
 
 
+/* TESTS */
 
-
-
-int main()
+void testLexer()
 {
+    std::string testingObject = "Lexer";
+    Lexer* lexer = new Lexer();
+    if (lexer->tokenize(":").at(0).getType() == TokenType::COLON)
+    {
+        std::cout << testingObject + ": test passed :) " << std::endl;
+    }
+    else
+    {
+        std::runtime_error(testingObject + ": test failed :( ");
+    }
 
-	Lexer* testingLexer = new Lexer;
-	std::vector<token> getTokens = testingLexer -> tokenize(":");
-	if (getTokens[0].getType() == COLON)
-	{
-		std::cout << "Hello, C++! \n" << std::endl;
-		return 0;
-	}
-	else
-	{
-		std::cout << "Bye, C++! \n" << std::endl;
-		return 0;
-	};
-	delete testingLexer;
-	return 0;
-};
+}

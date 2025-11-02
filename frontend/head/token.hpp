@@ -38,7 +38,7 @@ enum TokenType
     COLON,
     SEMICOLON,
 
-    END_OF_LINE,
+    EOL,
 };
 
 struct token
@@ -53,5 +53,4 @@ public:
     std::string getValue() {return value;};
 
     token(TokenType tokenType, std::string tokenValue) : type(tokenType), value(tokenValue) {};
-
 };

@@ -2,11 +2,11 @@
 #include<vector>
 
 template<typename T>
-int SillySearch::search(std::vector<T> vector, T target)
+unsigned int sillySearch(std::vector<T>* inputVector, T target)
 {
-    for (int i = 0; i < vector.size(); i++)
+    for (int i = 0; i < inputVector->size(); i++)
     {
-        if (vector[i] == target)
+        if (*inputVector[i] == target)
         {
             target = i;
             return i;
