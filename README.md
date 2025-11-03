@@ -1,1 +1,1 @@
-# Cosylang - component systems programming language 
+# Cosylang
