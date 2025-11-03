@@ -129,5 +129,6 @@ void testLexer()
     {
         std::runtime_error(testingObject + ": test failed :( ");
     }
+    delete lexer;
 
 }

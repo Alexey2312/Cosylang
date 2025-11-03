@@ -5,7 +5,7 @@ template<typename T>
 unsigned int sillySearch(const std::vector<T>& v, T val) {
     for (unsigned int i = 0; i < v.size(); ++i)
         if (v[i] == val) return i;
-    return static_cast<unsigned int>(-1); // или SIZE_MAX, как вам удобно
+    return static_cast<unsigned int>(-1);
 }
 
 template unsigned int sillySearch<char>(const std::vector<char>&, char);

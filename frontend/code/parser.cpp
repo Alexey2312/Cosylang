@@ -43,7 +43,19 @@ token peekToken()
 void advance()
 {
     position++;
-};
+}
+
+bool isVectorContains(const std::vector<TokenType>& expectedTokens, TokenType currentToken)
+{
+    for(auto tokenType : expectedTokens)
+    {
+        if(tokenType == currentToken)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 Node* lastOperation = nullptr;
 std::vector<Node*> intermediateData;
@@ -83,39 +95,16 @@ std::vector<Node*> Parser::parse(std::vector<token> inputTokens)
 
     for(token parsingToken : tokens)
     {
+        std::vector<TokenType> expectedTokens;
         switch(parsingToken.getType())
         {
             case LET_ID:
             {
-                if (lastOperation != nullptr)
+                if(isVectorContains(expectedTokens, TokenType::LET_ID) || expectedTokens.empty())
                 {
-                    intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
-                    if (nextToken().getType() != MUL || nextToken().getType() != DIV || nextToken().getType() != MINUS || nextToken().getType() != PLUS)
+                    if (lastOperation != nullptr)
                     {
-                        lastOperation->addChild(intermediateData.back());
-                        intermediateData.clear();
-                    }
-                    else if (tokenPriority[nextToken().getType()] <= lastOperation->getPriority())
-                    {
-                        lastOperation->addChild(intermediateData.back());
-                        intermediateData.clear();
-                        lastOperation = nullptr;
-                    }
-                }
-                else
-                {
-                    intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
-                }
-                break;
-            }
-            case ANY_NUMBER:
-            {
-                std::cout << "Number token found: " << parsingToken.getValue() << std::endl;
-                if (lastOperation != nullptr)
-                {
-                    intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
-                    if (nextToken().getType() != MUL || nextToken().getType() != DIV || nextToken().getType() != MINUS || nextToken().getType() != PLUS)
-                    {
+                            intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
                         if (nextToken().getType() != MUL || nextToken().getType() != DIV || nextToken().getType() != MINUS || nextToken().getType() != PLUS)
                         {
                             lastOperation->addChild(intermediateData.back());
@@ -128,41 +117,79 @@ std::vector<Node*> Parser::parse(std::vector<token> inputTokens)
                             lastOperation = nullptr;
                         }
                     }
-                    break;
+                    else
+                    {
+                        intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
+                    }
                 }
-                else
+                break;
+            }
+            case ANY_NUMBER:
+            {
+                if(isVectorContains(expectedTokens, TokenType::ANY_NUMBER) || expectedTokens.empty())
                 {
-                    intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
-                    break;
+                    if (lastOperation != nullptr)
+                    {
+                        intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
+                        if (nextToken().getType() != MUL || nextToken().getType() != DIV || nextToken().getType() != MINUS || nextToken().getType() != PLUS)
+                        {
+                            lastOperation->addChild(intermediateData.back());
+                            intermediateData.clear();
+                            expectedTokens = {TokenType::PLUS, TokenType::MINUS, TokenType::MUL, TokenType::DIV, TokenType::RIGHT_PAREN};
+                        }
+                        else if (tokenPriority[nextToken().getType()] <= lastOperation->getPriority())
+                        {
+                            lastOperation->addChild(intermediateData.back());
+                            intermediateData.clear();
+                            lastOperation = nullptr;
+                            expectedTokens = {TokenType::PLUS, TokenType::MINUS, TokenType::MUL, TokenType::DIV, TokenType::RIGHT_PAREN};
+                        }
+                    }
+                    else
+                    {
+                        intermediateData.push_back(new Node(parsingToken.getType(), parsingToken.getValue(), tokenPriority[parsingToken.getType()], {nullptr}, nullptr, NOT_AN_OPERATION));
+                        expectedTokens = {TokenType::PLUS, TokenType::MINUS, TokenType::MUL, TokenType::DIV, TokenType::RIGHT_PAREN};
+                    }
                 }
+                break;
+            }
 
 
             case TokenType::PLUS:
             {
-                std::cout << "Plus token found: " << parsingToken.getValue() << std::endl;
-                bool binaryParse = parseBinary(parsingToken);
-                if (binaryParse)
+                if(isVectorContains(expectedTokens, TokenType::PLUS)  || expectedTokens.empty())
                 {
-                    advance();
-                }
-                else
-                {
-                    parseError("ERROR, MUST BE BINARY, but got " + parsingToken.getValue());
+                    std::cout << "Plus token found: " << parsingToken.getValue() << std::endl;
+                    bool binaryParse = parseBinary(parsingToken);
+                    if (binaryParse)
+                    {
+                        advance();
+                        expectedTokens = {TokenType::ANY_NUMBER, TokenType::LET_ID};
+                    }
+                    else
+                    {
+                        parseError("ERROR, MUST BE BINARY, but got " + parsingToken.getValue());
+                    }
                 }
                 break;
             }
 
             case TokenType::MINUS:
             {
-                std::cout << "Minus token found: " << parsingToken.getValue() << std::endl;
-                bool binaryParse = parseBinary(parsingToken);
-                if (binaryParse)
+                if(isVectorContains(expectedTokens, TokenType::MINUS) || expectedTokens.empty())
                 {
-                    advance();
-                }
-                else
-                {
-                    parseError("ERROR, MUST BE BINARY");
+                    std::cout << "Minus token found: " << parsingToken.getValue() << std::endl;
+                    bool binaryParse = parseBinary(parsingToken);
+                    if (binaryParse)
+                    {
+                        advance();
+                        expectedTokens.clear();
+                        expectedTokens = {TokenType::ANY_NUMBER, TokenType::LET_ID};
+                    }
+                    else
+                    {
+                        parseError("ERROR, MUST BE BINARY, but got " + parsingToken.getValue());
+                    }
                 }
                 break;
             }
@@ -174,12 +201,18 @@ std::vector<Node*> Parser::parse(std::vector<token> inputTokens)
             break;
         }
     }
-    }
     std::cout << "Parsing complete!" << std::endl;
-    for (auto exp : intermediateExpressions)
+    if (!intermediateExpressions.empty())
     {
-        exp->printChildren();
+        for (auto exp : intermediateExpressions)
+        {
+            exp->printChildren();
+        }
+        ast = intermediateExpressions;
+        return ast;
     }
-    ast = intermediateExpressions;
-    return ast;
+    else
+    {
+        throw std::runtime_error("No expressions found");
+    }
 }

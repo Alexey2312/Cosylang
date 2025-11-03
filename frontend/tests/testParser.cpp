@@ -10,8 +10,8 @@ int main()
     std::string testingObject = "Parser";
     Parser* parser = new Parser();
 
-    std::vector<TokenType> tokens = {ANY_NUMBER, PLUS, ANY_NUMBER, MINUS, ANY_NUMBER};
-    std::vector<Node*> nodes = parser->parse({token(ANY_NUMBER, "42"), token(PLUS, "+"), token(ANY_NUMBER, "52"), token(MINUS, "-"), token(ANY_NUMBER, "1488")});
+    std::vector<TokenType> tokens = {ANY_NUMBER, PLUS, ANY_NUMBER, MINUS, ANY_NUMBER, PLUS, ANY_NUMBER};
+    std::vector<Node*> nodes = parser->parse({token(ANY_NUMBER, "42"), token(PLUS, "+"), token(ANY_NUMBER, "52"), token(MINUS, "-"), token(ANY_NUMBER, "1488"), token(PLUS, "+"), token(ANY_NUMBER, "44")});
 
     for (unsigned int checkingNode = 0; checkingNode < nodes.size(); checkingNode++)
     {
@@ -34,5 +34,6 @@ int main()
         std::runtime_error(testingObject + ": test 2 failed");
     }
 
+    delete parser;
     return 0;
 }
