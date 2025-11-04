@@ -1,6 +1,6 @@
-#include "../head/lexer.hpp"
-#include "../head/token.hpp"
-#include "../head/algorithms/sillySearch.hpp"
+#include "../../head/lexer.hpp"
+#include "../../head/token.hpp"
+#include "../../head/algorithms/sillySearch.hpp"
 #include <stdexcept>
 #include <vector>
 #include <string>
@@ -33,10 +33,10 @@ struct checker
 enum LineTypes
 {
 	OTHER,
-	STRING,
+	STRING_LINE,
 	QUOTES,
 	NUMBER,
-	ID,
+	IDENT,
 };
 
 std::vector<checker> tokensVector = {checker(":", TokenType::COLON)} ;
@@ -71,34 +71,34 @@ std::vector<token> Lexer::tokenize(std::string line)
 			{
 				if (!word.empty()) // work with ID
 				{
-					if (wordType == ID)
+					if (wordType == LineTypes::IDENT)
 					{
-						outVector.push_back(token(LET_ID, convertCharVectorToString(word)));
+						outVector.push_back(token(TokenType::ID, convertCharVectorToString(word)));
 						wordType = OTHER;
 					};
 				};
 
-				if (tokensVector[workingChecker].getToken() == QUOTES_TOKEN && wordType != QUOTES)
+				if (tokensVector[workingChecker].getToken() == TokenType::QUOTES_TOKEN && wordType != QUOTES)
 				{
-					wordType = STRING;
+					wordType = STRING_LINE;
 				}
 				else if (tokensVector[workingChecker].getToken() == TokenType::QUOTES_TOKEN && wordType == QUOTES)
 				{
 					wordType = OTHER;
-					outVector.push_back(token(STRING_TYPE, convertCharVectorToString(word)));
+					outVector.push_back(token(TokenType::STRING, convertCharVectorToString(word)));
 					word.clear();
 				};
 
 
 
 
-				if (tokensVector[workingChecker].getToken() == ANY_NUMBER)
+				if (tokensVector[workingChecker].getToken() == TokenType::ANY_NUMBER)
 				{
 					wordType = NUMBER;
 					word.push_back(lineVector[checkingChar]);
 					if (nextChar != '0' || nextChar != '2' || nextChar != '3' || nextChar != '4' ||  nextChar != '5' || nextChar != '6' ||  nextChar != '7' || nextChar != '8' || nextChar != '9')
 					{
-						outVector.push_back(token(ANY_NUMBER, convertCharVectorToString(word)));
+						outVector.push_back(token(TokenType::ANY_NUMBER, convertCharVectorToString(word)));
 						word.clear();
 					};
 				}

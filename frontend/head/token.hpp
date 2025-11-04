@@ -4,23 +4,16 @@
 enum TokenType
 {
     TYPE_ID,
-    INT16,
     INT32,
-    INT64,
-    STRING_TYPE,
+    STRING,
 
     ANY_NUMBER,
-
-    LET_ID,
+    ID,
 
     TYPE_NAME,
     VALUE,
 
-
     VAR,
-    FUNC,
-
-    ARGUMENTS,
 
     LEFT_PAREN,
     RIGHT_PAREN,
@@ -30,13 +23,12 @@ enum TokenType
     MUL,
     DIV,
 
+    COLON,
+    QUOTES_TOKEN,
 
     PRINT,
-    WRITE,
-    EQUAL,
-    QUOTES_TOKEN,
-    COLON,
-    SEMICOLON,
+    IF,
+    EQUALS,
 
     EOL,
 };

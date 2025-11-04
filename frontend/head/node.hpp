@@ -10,6 +10,7 @@ enum OperationType
 {
     BINARY,
     UNARY,
+    KEYWORD,
     NOT_AN_OPERATION
 };
 
