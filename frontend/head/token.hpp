@@ -30,6 +30,8 @@ enum TokenType
     IF,
     EQUALS,
 
+    EXPRESSION,
+
     EOL,
 };
 

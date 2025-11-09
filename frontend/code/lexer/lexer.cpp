@@ -45,6 +45,7 @@ std::vector<checker> tokensVector = {checker(":", TokenType::COLON)} ;
 
 std::vector<token> Lexer::tokenize(std::string line)
 {
+    SillySearch sillySearch = SillySearch();
 	char nextChar;
 	char lastChar;
 
@@ -56,13 +57,9 @@ std::vector<token> Lexer::tokenize(std::string line)
 
 	for(unsigned int checkingChar = 0; checkingChar < lineVector.size(); checkingChar++)
 	{
-		if (sillySearch(lineVector, lineVector[checkingChar + 1]) <= lineVector.size())
+		if (sillySearch.search(lineVector, lineVector[checkingChar + 1]) <= lineVector.size())
 		{
 			nextChar = lineVector[checkingChar + 1];
-		}
-		else
-		{
-
 		}
 
 		for(unsigned int workingChecker = 0; workingChecker < tokensVector.size(); workingChecker++)
@@ -76,6 +73,9 @@ std::vector<token> Lexer::tokenize(std::string line)
 						outVector.push_back(token(TokenType::ID, convertCharVectorToString(word)));
 						wordType = OTHER;
 					};
+					{
+
+					}
 				};
 
 				if (tokensVector[workingChecker].getToken() == TokenType::QUOTES_TOKEN && wordType != QUOTES)

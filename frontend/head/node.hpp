@@ -45,8 +45,14 @@ public:
 
     void printChildren() const
     {
+        if (children.empty() || children[0] == nullptr)
+            return;
         for (const auto& child : children)
         {
+            if (child == nullptr)
+            {
+                throw std::runtime_error("PrintChild: child node is null");
+            }
             std::cout << value + " children: " + child->getValue() << std::endl;
         }
     }
