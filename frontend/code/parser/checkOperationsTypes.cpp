@@ -1,5 +1,5 @@
-#include "../head/checkOperationsTypes.hpp"
-#include "../head/token.hpp"
+#include "../../head/checkOperationsTypes.hpp"
+#include "../../head/token.hpp"
 #include <vector>
 #include <iostream>
 
@@ -15,8 +15,13 @@ std::vector<TokenType> unaryOperators = {
 };
 
 std::vector<TokenType> notOperators = {
-    TokenType::LET_ID,
+    TokenType::ID,
     TokenType::ANY_NUMBER,
+};
+
+std::vector<TokenType> keywords = {
+    TokenType::IF,
+    TokenType::PRINT,
 };
 
 bool isBinaryOperator(TokenType token)
