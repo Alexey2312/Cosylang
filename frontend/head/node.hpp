@@ -20,12 +20,12 @@ class Node
     TokenType type;
     std::string value;
     int priority;
-    std::vector<Node*> children;
+    std::vector<Node> children;
     Node* parent = nullptr;
     OperationType operation;
 
 public:
-    Node(TokenType type, std::string value, int priority, std::vector<Node*> children, Node* parent, OperationType operation) : type(type), value(value), priority(priority), children(children), parent(parent), operation(operation) {}
+    Node(TokenType type, std::string value, int priority, std::vector<Node> children, Node* parent, OperationType operation) : type(type), value(value), priority(priority), children(children), parent(parent), operation(operation) {}
 
     TokenType getType() const {return type;}
 
@@ -34,8 +34,8 @@ public:
     Node* getParent() const {return parent;}
     void setParent(Node* newParent) {parent = newParent;}
 
-    std::vector<Node*> getChildren() const {return children;}
-    void addChild(Node* child) {children.push_back(child);}
+    std::vector<Node> getChildren() const {return children;}
+    void addChild(Node child) {children.push_back(child);}
 
     int getPriority() const {return priority;}
     void setPriority(int newPriority) {priority = newPriority;}
@@ -45,15 +45,12 @@ public:
 
     void printChildren() const
     {
-        if (children.empty() || children[0] == nullptr)
+        if (children.empty() || children.empty())
             return;
         for (const auto& child : children)
         {
-            if (child == nullptr)
-            {
-                throw std::runtime_error("PrintChild: child node is null");
-            }
-            std::cout << value + " children: " + child->getValue() << std::endl;
+            std::cout << value + " children: " + child.getValue() << std::endl;
+            child.printChildren();
         }
     }
 };

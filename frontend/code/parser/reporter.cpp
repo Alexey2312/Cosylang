@@ -3,7 +3,8 @@
 
 void Reporter::report(ReportType type, const std::string& message)
 {
-    switch (type) {
+    switch (type)
+    {
         case ReportType::INFO:
             infoReports.push_back(message);
             break;
