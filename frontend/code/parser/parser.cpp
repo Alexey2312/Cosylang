@@ -4,13 +4,13 @@
 #include "../../head/nodeCreator.hpp"
 #include "../../head/reporter.hpp"
 #include "../../head/algorithms/sillySearch.hpp"
-#include <cstddef>
+#include "../convertor.cpp"
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <map>
 #include <vector>
 #include <iostream>
-
 
 std::map<TokenType, int> nodesPriorities = {
     {TokenType::PLUS, 2},
@@ -25,6 +25,7 @@ std::map<TokenType, int> nodesPriorities = {
     // Keywords
     {TokenType::PRINT, 1},
     {TokenType::IF, 1},
+    {TokenType::FUNC, 1}
 };
 
 std::vector<TokenType> keywordsTypes =
@@ -35,21 +36,22 @@ std::vector<TokenType> keywordsTypes =
 
 Reporter reporter = Reporter();
 
-
+Node parseExpression(token inputToken);
 
 std::vector<token> tokens;
 unsigned int position = 0;
 
 token nextToken()
 {
-    reporter.report(Reporter::INFO, "nextToken: Next token called");
-    if (position + 1 > tokens.size())
+    try
     {
-        reporter.report(Reporter::WARNING, "nextToken: End of tokens reached, position: " + std::to_string(position));
-        return token(TokenType::EOL, "");
+        reporter.report(Reporter::INFO, "nextToken: Returning token: " + tokens.at(position + 1).getValue());
+        return tokens.at(position + 1);
     }
-    reporter.report(Reporter::INFO, "nextToken: Returning token: " + tokens.at(position + 1).getValue());
-    return tokens.at(position + 1);
+    catch (std::out_of_range& error)
+    {
+        return token(TokenType::EOL, "eolNext");
+    }
 }
 
 token lastToken()
@@ -70,22 +72,40 @@ token peekToken()
 
 void advance()
 {
-    reporter.report(Reporter::INFO, "advance: Advance called, new position: " + std::to_string(position + 1) + " token is: " + tokens.at(position + 1).getValue());
-    position++;
+    try
+    {
+        reporter.report(Reporter::INFO, "advance: Advance called, new position: " + std::to_string(position + 1) + " token is: " + tokens.at(position + 1).getValue());
+        position++;
+    }
+    catch (const std::exception& error)
+    {
+        reporter.printReports();
+        throw std::runtime_error("advance: Exception caught: " + std::string(error.what()));
+    }
+
 }
 
 void eat(TokenType expectedToken, std::string message)
 {
-    reporter.report(Reporter::INFO, "eat: Eat called, message: " + message);
-    if (peekToken().getType() == expectedToken || expectedToken == TokenType::EXPRESSION)
+    try
     {
-        reporter.report(Reporter::INFO, "eat: Token matched, advancing position to " + std::to_string(position + 1) + ". Token is: " + tokens.at(position).getValue());
-        advance();
+        reporter.report(Reporter::INFO, "eat: Eat called, message: " + message);
+        if (peekToken().getType() == expectedToken || expectedToken == TokenType::EXPRESSION)
+        {
+            reporter.report(Reporter::INFO, "eat: Token matched, advancing position to " + std::to_string(position + 1) + ". Token is: " + tokens.at(position + 1).getValue());
+            advance();
+        }
+        else
+        {
+            reporter.printReports();
+            throw std::runtime_error(message + ", got: " + tokens.at(position).getValue() + ", position: " + std::to_string(position));
+        }
     }
-    else
+    catch (const std::exception& error)
     {
         reporter.printReports();
-        throw std::runtime_error(message + ", got: " + tokens.at(position).getValue() + ", position: " + std::to_string(position));
+
+        throw std::runtime_error("eat: Exception caught: " + std::string(error.what()));
     }
 }
 
@@ -102,6 +122,8 @@ bool match(TokenType expectedToken)
 
 Node parseFactor(token inputToken)
 {
+    reporter.report(Reporter::INFO, "parseFactor: Parsing factor, token: " + inputToken.getValue());
+    Node outNode = createNode(TokenType::EOL, "eol1", 0, OperationType::NOT_AN_OPERATION);
     reporter.report(Reporter::INFO, "parseFactor: Parsing factor, position: " + std::to_string(position) + ", token: " + inputToken.getValue() + ", position: " + std::to_string(position));
     switch (inputToken.getType())
     {
@@ -109,35 +131,45 @@ Node parseFactor(token inputToken)
         {
             reporter.report(Reporter::INFO, "parseFactor: Parsing number");
             eat(TokenType::ANY_NUMBER, "Expected a number");
-            return createNode(TokenType::ANY_NUMBER, lastToken().getValue(), 2, OperationType::BINARY);
+
+            Node numberNode = createNode(TokenType::ANY_NUMBER, lastToken().getValue(), 1, OperationType::NOT_AN_OPERATION);
+            return numberNode;
         }
 
         case TokenType::ID:
         {
 
             eat(TokenType::ID, "Expected an identifier");
-            return createNode(TokenType::ID, lastToken().getValue(), 1, OperationType::NOT_AN_OPERATION);
+            Node identifierNode = createNode(TokenType::ID, lastToken().getValue(), 1, OperationType::NOT_AN_OPERATION);
+            outNode.addChild(identifierNode);
+            return outNode;
         }
 
         case TokenType::LEFT_PAREN:
         {
             reporter.report(Reporter::INFO, "parseFactor: Parsing left parenthesis");
+            outNode = createNode(TokenType::EXPRESSION, "expression", 1, OperationType::NOT_AN_OPERATION);
+            eat(TokenType::LEFT_PAREN, "Expected a left parenthesis");
+            outNode.addChild(createNode(TokenType::LEFT_PAREN, "(", 1, OperationType::NOT_AN_OPERATION));
+            outNode.addChild(parseExpression(peekToken()));
 
-            return createNode(TokenType::LEFT_PAREN, "", 2, OperationType::NOT_AN_OPERATION);
+            return outNode;
         }
 
         case TokenType::RIGHT_PAREN:
         {
             reporter.report(Reporter::INFO, "parseFactor: Parsing right parenthesis");
             eat(TokenType::RIGHT_PAREN, "Expected a closing parenthesis");
-            return createNode(TokenType::RIGHT_PAREN, ")", 2, OperationType::NOT_AN_OPERATION);
+            outNode = createNode(TokenType::RIGHT_PAREN, ")", 2, OperationType::NOT_AN_OPERATION);
+            return outNode;
         }
 
         case TokenType::EOL:
         {
             reporter.report(Reporter::INFO, "parseFactor: Parsing end of line");
             eat(TokenType::EOL, "Expected an end of line");
-            return createNode(TokenType::EOL, "", 0, OperationType::NOT_AN_OPERATION);
+            outNode = createNode(TokenType::EOL, "eol2", 0, OperationType::NOT_AN_OPERATION);
+            return outNode;
         }
 
         default:
@@ -151,22 +183,23 @@ Node parseFactor(token inputToken)
 
 Node parseTerm(token inputToken)
 {
+    Node outNode = createNode(TokenType::EOL, "eol3", 0, OperationType::NOT_AN_OPERATION);
     reporter.report(Reporter::INFO, "parseTerm: Parsing term, position: " + std::to_string(position));
     int precedence = 3;
     Node left = parseFactor(inputToken);
     reporter.report(Reporter::INFO, "parseTerm: Factor parsed, left: " + left.getValue());
-    Node outNode = createNode(TokenType::EOL, "", 0, OperationType::NOT_AN_OPERATION);
+    outNode = createNode(TokenType::EOL, "eol4", 0, OperationType::NOT_AN_OPERATION);
     bool isTerm = false;
     while (match(TokenType::MUL) || match(TokenType::DIV))
     {
         isTerm = true;
         token operation = lastToken();
         Node right = parseFactor(peekToken());
-        outNode = Node(operation.getType(), operation.getValue(), precedence, {&left, &right}, nullptr, OperationType::BINARY);
+        outNode = Node(operation.getType(), operation.getValue(), precedence, {left, right}, nullptr, OperationType::BINARY);
     }
     if (!isTerm)
     {
-        outNode = left;
+        return left;
     }
     reporter.report(Reporter::INFO, "parseTerm: Term parsed, outNode: " + outNode.getValue());
 
@@ -176,11 +209,12 @@ Node parseTerm(token inputToken)
 Node parseExpression(token inputToken)
 {
     reporter.report(Reporter::INFO, "parseExpression: Expression parsing started, inputToken: " + inputToken.getValue());
-    Node outNode = createNode(TokenType::EOL, "", 0, OperationType::NOT_AN_OPERATION);
+    Node outNode = createNode(TokenType::EOL, "eol6", 0, OperationType::NOT_AN_OPERATION);
     if (inputToken.getType() == TokenType::STRING)
     {
         reporter.report(Reporter::INFO, "parseExpression: String token found");
-        return Node(TokenType::STRING, inputToken.getValue(), 0, {nullptr}, nullptr, OperationType::NOT_AN_OPERATION);
+        outNode = createNode(TokenType::STRING, inputToken.getValue(), 0, OperationType::NOT_AN_OPERATION);
+        return outNode;
     }
 
     reporter.report(Reporter::INFO, "parseExpression: Parsing term");
@@ -189,83 +223,134 @@ Node parseExpression(token inputToken)
     {
         reporter.report(Reporter::INFO, "parseExpression: Parsing binary operation");
         token operation = lastToken();
+        reporter.report(Reporter::INFO, "parseExpression: operation: " + operation.getValue());
         Node right = parseTerm(peekToken());
-        outNode = Node(operation.getType(), operation.getValue(), 2, {&left, &right}, nullptr, OperationType::BINARY);
+        reporter.report(Reporter::INFO, "parseExpression: right: " + right.getValue());
+
+        outNode = createNode(operation.getType(), operation.getValue(), 0, OperationType::BINARY);
+        outNode.addChild(left);
+        outNode.addChild(right);
     }
 
-    switch (outNode.getType())
+    if (outNode.getType() == TokenType::EOL)
     {
-        case TokenType::EOL:
+        if (nextToken().getType() == TokenType::EOL)
         {
-            reporter.report(Reporter::INFO, "parseExpression: returning left node");
+            reporter.report(Reporter::ERROR, "left: " + left.getValue());
             return left;
         }
-        default:
-        {
-            reporter.report(Reporter::INFO, "parseExpression: returning outNode");
-            return outNode;
-        }
+        reporter.report(Reporter::WARNING, "parseNewToken: " + nextToken().getValue());
+        advance();
+        left.addChild(parseFactor(peekToken()));
+        return left;
     }
+    return outNode;
 }
 
-std::vector<Node> parseKeywordWithExpression(token keywordToken)
+Node parseKeywordWithExpression(token keywordToken)
 {
-    std::vector<Node> nodes;
-    size_t keywordIndex;
+    Node outNode = createNode(TokenType::EOL, "EOL8", 0, OperationType::NOT_AN_OPERATION);
     SillySearch sillySearch = SillySearch();
     if (sillySearch.search(keywordsTypes, keywordToken.getType()) >= 0)
     {
-        nodes.push_back(createNode(keywordToken.getType(), keywordToken.getValue(), 1, OperationType::KEYWORD));
-        keywordIndex = nodes.size() - 1;
+        outNode = createNode(keywordToken.getType(), keywordToken.getValue(), 1, OperationType::KEYWORD);
         reporter.report(Reporter::INFO, "parseKeywordWithExpression: Keyword token was parsed");
     }
     else
     {
         throw std::runtime_error("Invalid keyword token");
     }
-    if (match(TokenType::LEFT_PAREN))
-    {
-        nodes.push_back(createNode(TokenType::LEFT_PAREN, "(", 1, OperationType::NOT_AN_OPERATION));
-        nodes[keywordIndex].addChild(&nodes.back());
-        nodes.push_back(parseExpression(peekToken()));
-        reporter.report(Reporter::INFO, "parseKeywordWithExpression: Expression tokens were parsed, last node: " + nodes.back().getValue());
-        nodes.push_back(createNode(TokenType::RIGHT_PAREN, ")", 1, OperationType::NOT_AN_OPERATION));
-        nodes[keywordIndex].addChild(&nodes.back());
-    }
-    else
-    {
-        eat(TokenType::EXPRESSION, "Expected an expression, but got " + peekToken().getValue());
-        nodes.push_back(parseExpression(lastToken()));
-    }
-    return nodes;
+    Node expressionNode = parseExpression(peekToken());
+    outNode.addChild(expressionNode);
+    expressionNode.setParent(&outNode);
+    return outNode;
 }
 
-std::vector<Node> defineKeyword(token firstToken)
+class IParse
 {
-    switch (firstToken.getType())
+public:
+    IParse() = default;
+    virtual Node parseKeyword() = 0;
+    virtual ~IParse() = default;
+};
+
+class ParsePrint : public IParse
+{
+    token parsingToken;
+public:
+    ParsePrint(token inputToken) : parsingToken(inputToken) {}
+    Node parseKeyword() override
     {
-        case TokenType::PRINT:
-        {
-            reporter.report(Reporter::INFO, "defineKeyword: PRINT keyword found");
-            eat(peekToken().getType(), "Expected 'print' keyword");
-            return parseKeywordWithExpression(firstToken);
-        }
-        case TokenType::IF:
-        {
-            reporter.report(Reporter::INFO, "defineKeyword: IF keyword found");
-            eat(peekToken().getType(), "Expected 'if' keyword");
-            return parseKeywordWithExpression(peekToken());
-        }
-
-        default:
-        {
-            return parseKeywordWithExpression(firstToken);
-        }
-
+        reporter.report(Reporter::INFO, "defineKeyword: PRINT keyword found");
+        eat(peekToken().getType(), "Expected 'print' keyword");
+        return parseKeywordWithExpression(parsingToken);
     }
-}
+};
 
-std::vector<Node> Parser::parse(std::vector<token> inputTokens)
+class ParseIf : public IParse
+{
+    token parsingToken;
+public:
+    ParseIf(token inputToken) : parsingToken(inputToken) {}
+    Node parseKeyword() override
+    {
+        reporter.report(Reporter::INFO, "defineKeyword: IF keyword found");
+        eat(peekToken().getType(), "Expected 'if' keyword");
+        return parseKeywordWithExpression(parsingToken);
+    }
+};
+
+class ParseNone : public IParse
+{
+    token parsingToken;
+public:
+    ParseNone(token inputToken) : parsingToken(inputToken) {}
+    Node parseKeyword() override
+    {
+        reporter.report(Reporter::INFO, "NONE keyword found");
+        return createNode(TokenType::EOL, parsingToken.getValue(), 0, OperationType::NOT_AN_OPERATION);
+    }
+};
+
+class SelectParser
+{
+    struct Checker
+    {
+        TokenType tokenType;
+        std::shared_ptr<IParse> parseMethod = nullptr;
+    public:
+        Checker(TokenType type, std::shared_ptr<IParse> parseMethod) : tokenType(type), parseMethod(parseMethod) {}
+        bool check(TokenType type)
+        {
+            return type == tokenType;
+        }
+        Node parseKeyword()
+        {
+            Node outNode = parseMethod->parseKeyword();
+            return outNode;
+        }
+    };
+public:
+    static Node defineKeyword(token firstToken)
+    {
+        std::vector<Checker> checkers =
+        {
+            Checker(TokenType::PRINT, std::make_shared<ParsePrint>(token(TokenType::PRINT, "print"))),
+            Checker(TokenType::IF, std::make_shared<ParseIf>(token(TokenType::IF, "if"))),
+        };
+
+        for(auto checker : checkers)
+        {
+            if(checker.check(firstToken.getType()))
+            {
+                return checker.parseKeyword();
+            }
+        }
+        return parseExpression(firstToken);
+    }
+};
+
+Node Parser::parse(std::vector<token> inputTokens)
 {
     position = 0;
     if (inputTokens.empty())
@@ -274,43 +359,37 @@ std::vector<Node> Parser::parse(std::vector<token> inputTokens)
     }
     reporter.report(Reporter::INFO, "Parser: Parsing started");
     tokens = inputTokens;
-    std::vector<Node> ast = defineKeyword(inputTokens.at(0));
+    Node ast = SelectParser::defineKeyword(inputTokens.at(0));
     return ast;
 }
 
 void testParser()
 {
-    Parser* parser = new Parser();
+    std::unique_ptr<Parser> parser = std::make_unique<Parser>();
     std::cout << "Start first test" << std::endl;
-    std::vector<token> tokens = {token(TokenType::PRINT, "print"), token(TokenType::LEFT_PAREN, "("), token(TokenType::STRING, "Hello, world!"), token(TokenType::RIGHT_PAREN, ")")};
-    std::vector<Node> nodes = parser->parse(tokens);
-    if (nodes.size() == 4)
+    std::vector<token> tokens = {token(TokenType::PRINT, "print"), token(TokenType::LEFT_PAREN, "("), token(TokenType::STRING, "Hello, world!"), token(TokenType::RIGHT_PAREN, ")"), token(TokenType::EOL, "")};
+    //std::vector<token> tokens = {token(TokenType::ANY_NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "321"), token(TokenType::ANY_NUMBER, "321"), token(TokenType::EOL, "")};
+    Node node = parser->parse(tokens);
+    if (node.getChildren().size() == 1)
     {
-        for (Node node : nodes)
-        {
-            std::cout << node.getValue() << std::endl;
-        }
-        for (Node node : nodes)
-        {
-            node.printChildren();
-            std::cout << " "<< std::endl;
-        }
         reporter.printReports();
-        std::cout << "test1 passed :), " + std::to_string(nodes[0].getChildren().size()) << std::endl;
+        node.printChildren();
+        std::cout << "test1 passed :), " + std::to_string(node.getChildren().size()) << std::endl;
     }
     else
     {
         reporter.printReports();
-        std::cout << "test1 failed: Unexpected number of nodes, " + std::to_string(nodes.size()) + ", expected 4 :(" << std::endl;
-
+        std::cout << "test1 failed: Unexpected number of nodes, " + std::to_string(node.getChildren().size()) + ", expected 1 :(" << std::endl;
+        node.printChildren();
     }
-
-
-    delete parser;
 }
 
 int main()
 {
+    for (auto token : tokens)
+    {
+        std::cout << token.getValue() << std::endl;
+    }
     testParser();
     return 0;
 }

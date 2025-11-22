@@ -4,5 +4,5 @@
 
 Node createNode(TokenType type, std::string value, int priority, OperationType operationType)
 {
-    return Node(type, value, priority, {nullptr}, nullptr, operationType);
+    return Node(type, value, priority, {}, nullptr, operationType);
 }
