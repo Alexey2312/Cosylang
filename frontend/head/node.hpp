@@ -45,8 +45,10 @@ public:
 
     void printChildren() const
     {
-        if (children.empty() || children.empty())
+        if (children.empty())
+        {
             return;
+        }
         for (const auto& child : children)
         {
             std::cout << value + " children: " + child.getValue() << std::endl;

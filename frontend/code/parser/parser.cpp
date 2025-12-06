@@ -350,6 +350,8 @@ public:
     }
 };
 
+
+
 Node Parser::parse(std::vector<token> inputTokens)
 {
     position = 0;
@@ -363,12 +365,13 @@ Node Parser::parse(std::vector<token> inputTokens)
     return ast;
 }
 
+
 void testParser()
 {
     std::unique_ptr<Parser> parser = std::make_unique<Parser>();
     std::cout << "Start first test" << std::endl;
-    std::vector<token> tokens = {token(TokenType::PRINT, "print"), token(TokenType::LEFT_PAREN, "("), token(TokenType::STRING, "Hello, world!"), token(TokenType::RIGHT_PAREN, ")"), token(TokenType::EOL, "")};
-    //std::vector<token> tokens = {token(TokenType::ANY_NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "321"), token(TokenType::ANY_NUMBER, "321"), token(TokenType::EOL, "")};
+    //std::vector<token> tokens = {token(TokenType::PRINT, "print"), token(TokenType::LEFT_PAREN, "("), token(TokenType::STRING, "Hello, world!"), token(TokenType::RIGHT_PAREN, ")"), token(TokenType::EOL, "")};
+    std::vector<token> tokens = {token(TokenType::ANY_NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "321"), token(TokenType::ANY_NUMBER, "321"), token(TokenType::EOL, "")};
     Node node = parser->parse(tokens);
     if (node.getChildren().size() == 1)
     {
@@ -384,12 +387,14 @@ void testParser()
     }
 }
 
+
 int main()
 {
+    const short okCode = 0;
     for (auto token : tokens)
     {
         std::cout << token.getValue() << std::endl;
     }
     testParser();
-    return 0;
+    return okCode;
 }

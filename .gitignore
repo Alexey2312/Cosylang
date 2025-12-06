@@ -1,6 +1,5 @@
 *.o
 *.obj
-*.lo
 *.out
 *.exe
 *.elf

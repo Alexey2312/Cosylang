@@ -14,6 +14,7 @@ enum TokenType
     VALUE,
 
     VAR,
+    CONST,
 
     LEFT_PAREN,
     RIGHT_PAREN,
