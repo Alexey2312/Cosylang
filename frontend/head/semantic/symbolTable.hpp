@@ -1,4 +1,3 @@
-#pragma once
 
 #include "symbol.hpp"
 #include <iostream>

@@ -2,10 +2,10 @@
 
 #include "../node.hpp"
 
-class Checker
+class ConstructionChecker
 {
     TokenType checkingKeyword;
 public:
-    void check(Node node);
+    void check(Node keyword);
     TokenType getCheckingKeyword() const { return checkingKeyword; }
 };

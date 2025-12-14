@@ -28,10 +28,6 @@ component divisionComponent
 {
     func divide(firstNumber: int32, secondNumber: int32) -> int32
     {
-        if secondNumber == 0
-        {
-            stdlib.throwError("Division by zero")
-        }
         return firstNumber / secondNumber
     }
 }
@@ -74,16 +70,16 @@ func main() -> void
     var second: int32
     var action: string
 
-    write("Enter first number...")
+    print("Enter first number...")
     first = stdlib.tryCast(read(stdlib.console), int32, "You entered an invalid number.")
 
-    write("Enter second number...")
+    print("Enter second number...")
     second = stdlib.tryCast(read(stdlib.console), int32, "You entered an invalid number.")
 
-    write("Enter action (+, -, *, /)... ")
+    print("Enter action (+, -, *, /)... ")
     action = read(stdlib.console)
 
-    print(stdlib.stringJoin("result:", calc.calculate(first, action, second)))
+    println(stdlib.stringJoin("result:", calc.calculate(first, action, second)))
 
     return void
 }

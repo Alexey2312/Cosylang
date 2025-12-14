@@ -1,7 +1,7 @@
 #pragma once
 #include "../../head/node.hpp"
 
-class Declaration
+class Declaration // Base class for all declarations (Function declaration, variable declaration, etc)
 {
     TokenType validType = TokenType::EOL;
 public:

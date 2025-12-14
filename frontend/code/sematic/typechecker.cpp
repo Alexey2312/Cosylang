@@ -1,34 +1,33 @@
 #include "../../head/semantic/typechecker.hpp"
-#include "../../head/semantic/checkers.hpp"
 
 class CheckersRegistry
 {
-    static std::vector<Checker> checkers;
+    static std::vector<TypeChecker> checkers;
 public:
-    static void addChecker(Checker newChecker)
+    static void addChecker(TypeChecker newChecker)
     {
         checkers.push_back(newChecker);
     }
 
-    static std::vector<Checker> getCheckers()
+    static std::vector<TypeChecker> getCheckers()
     {
         return checkers;
     }
 };
 
-void TypeChecker::startCheck(Node node)
+void TypeChecking::startTypeChecking(Node node)
 {
-    std::vector<Checker> validCheckers = CheckersRegistry::getCheckers();
+    std::vector<TypeChecker> validCheckers = CheckersRegistry::getCheckers();
     bool found = false;
     for (auto& checker : validCheckers)
     {
-        if(checker.getCheckingKeyword() == node.getType())
+        if(checker.getKeyword() == node.getType())
         {
-            checker.check(node);
+            checker.startTypeChecking(node);
             found = true;
         }
     }
-    if (!found)
+    if (found == false)
     {
         throw std::runtime_error("No checker found for node type");
     }

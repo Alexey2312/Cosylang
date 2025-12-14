@@ -1,4 +1,5 @@
 #include "../../head/reporter.hpp"
+#include <stdexcept>
 #include <iostream>
 
 void Reporter::report(ReportType type, const std::string& message)
@@ -6,14 +7,20 @@ void Reporter::report(ReportType type, const std::string& message)
     switch (type)
     {
         case ReportType::INFO:
+        {
             infoReports.push_back(message);
             break;
+        }
         case ReportType::WARNING:
+        {
             warningReports.push_back(message);
             break;
+        }
         case ReportType::ERROR:
+        {
             errorReports.push_back(message);
             break;
+        }
         default:
             throw std::runtime_error("Invalid report type to send " + message);
             break;

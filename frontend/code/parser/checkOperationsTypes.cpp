@@ -50,7 +50,7 @@ bool isUnaryOperator(TokenType token)
 
 bool isNotOperator(TokenType token)
 {
-    for (auto notOperation : notOperators)
+    for (auto& notOperation : notOperators)
     {
         if (token == notOperation)
         {

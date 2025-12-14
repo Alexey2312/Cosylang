@@ -23,9 +23,12 @@ public:
 class FlagsRegister
 {
 private:
-    std::vector<flagName> correctFlags;
+    std::vector<flagName> correctFlags =
+    {
+
+    };
 public:
-    bool isCorrect(std::string inputFlag)
+    bool isFlagValid(std::string inputFlag)
     {
         if (correctFlags.empty())
         {

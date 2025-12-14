@@ -4,7 +4,15 @@
 
 class TypeChecker
 {
+    TokenType keyword;
 public:
     TypeChecker();
-    void startCheck(Node node);
+    void startTypeChecking(Node node);
+    TokenType getKeyword() { return keyword; };
+};
+
+class TypeChecking
+{
+public:
+    void startTypeChecking(Node node); // see implementation in typechecker.cpp
 };

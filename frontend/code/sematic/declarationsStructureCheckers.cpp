@@ -3,11 +3,11 @@
 #include <string>
 #include <vector>
 
-class ValidFirstNode
+class DeclarationProcessor
 {
     Node selfNode;
 public:
-    ValidFirstNode(Node node) : selfNode(node) {}
+    DeclarationProcessor(Node node) : selfNode(node) {}
     Node getSelfNode()
     {
         return selfNode;
@@ -18,15 +18,15 @@ public:
     }
 };
 
-class ValidVarKeyword : ValidFirstNode
+class VarDeclarationProcessor : DeclarationProcessor
 {
     std::vector<Node> children;
 public:
-    ValidVarKeyword(Node node) : ValidFirstNode(node)
+    VarDeclarationProcessor(Node node) : DeclarationProcessor(node)
     {
         if(node.getType() != TokenType::VAR)
         {
-            throw std::runtime_error("Semantic error: ValidVarKeyword: Invalid variable declaration");
+            throw std::runtime_error("Semantic error: VarDeclarationProcessor: Invalid variable declaration");
         }
         setSelfNode(node);
         children = node.getChildren();
@@ -39,14 +39,14 @@ public:
         IType type = AnyType();
         if (mainNode.getType() == TokenType::COLON)
         {
-            if (currentNodeChildren[1].getType() == TokenType::TYPE_NAME)
+            if (currentNodeChildren.at(1).getType() == TokenType::TYPE_NAME) // First child is a name of variable at index 0, type name is at index 1
             {
-                std::string typeName = currentNodeChildren[1].getValue();
+                std::string typeName = currentNodeChildren.at(1).getValue();
                 return TypeFactory::createType(typeName);
             }
             else
             {
-                throw std::runtime_error("Semantic error: ValidVarKeyword: Invalid type declaration");
+                throw std::runtime_error("Semantic error: VarDeclarationProcessor: Invalid type declaration");
             }
         }
         else if (mainNode.getType() == TokenType::TYPE_NAME)
@@ -56,11 +56,11 @@ public:
         }
         else
         {
-            throw std::runtime_error("Semantic error: ValidVarKeyword: Invalid type declaration");
+            throw std::runtime_error("Semantic error: VarDeclarationProcessor: Invalid type declaration");
         }
     }
 
-    VariableSymbol processVarDeclaration(Node mainNode)
+    VariableSymbol processVarKeyword(Node mainNode)
     {
         Node currentNode = mainNode;
         std::string variableName;
@@ -72,7 +72,7 @@ public:
         }
         if (currentNodeChildren.at(0).getType() == TokenType::EQUALS)
         {
-            return processVarDeclaration(currentNode);
+            return processVarKeyword(currentNode);
         }
         if(currentNodeChildren.at(0).getType() == TokenType::ID)
         {
@@ -91,9 +91,9 @@ public:
         Node currentNode = getSelfNode();
         std::vector<Node> currentNodeChildren = currentNode.getChildren();
         std::string variableName;
-        if (currentNodeChildren[0].getType() == TokenType::VAR)
+        if (currentNodeChildren.at(0).getType() == TokenType::VAR)
         {
-            return processVarDeclaration(currentNode);
+            return processVarKeyword(currentNode);
         }
         else
         {
@@ -102,9 +102,9 @@ public:
     }
 };
 
-class VariableDeclarationChecker : public Checker
+class VariableDeclarationConstructionChecker : public ConstructionChecker
 {
-    std::vector<TokenType> firstNodeTypes = {TokenType::EQUALS, TokenType::ID, TokenType::VAR, TokenType::CONST};
+    std::vector<TokenType> firstNodeTypes = {TokenType::EQUALS, TokenType::COLON, TokenType::VAR, TokenType::CONST};
 public:
     void isValid(Node node, std::string errorMessage = "Semantic error: Invalid variable declaration")
     {
@@ -127,7 +127,6 @@ public:
     void check(const Node node)
     {
         isValid(node);
-
-
+        /*  */
     }
 };

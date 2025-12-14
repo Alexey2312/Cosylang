@@ -1,2 +1,0 @@
-mov rdx, rda
-syscall
