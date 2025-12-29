@@ -20,7 +20,7 @@ public:
 
 class VarDeclarationProcessor : DeclarationProcessor
 {
-    std::vector<Node> children;
+    std::vector<std::shared_ptr<Node>> children;
 public:
     VarDeclarationProcessor(Node node) : DeclarationProcessor(node)
     {
@@ -35,13 +35,13 @@ public:
     IType defineVariableType(Node mainNode)
     {
         Node currentNode = mainNode;
-        std::vector<Node> currentNodeChildren = currentNode.getChildren();
+        std::vector<std::shared_ptr<Node>> currentNodeChildren = currentNode.getChildren();
         IType type = AnyType();
         if (mainNode.getType() == TokenType::COLON)
         {
-            if (currentNodeChildren.at(1).getType() == TokenType::TYPE_NAME) // First child is a name of variable at index 0, type name is at index 1
+            if (currentNodeChildren.at(1)->getType() == TokenType::TYPE_NAME) // First child is a name of variable at index 0, type name is at index 1
             {
-                std::string typeName = currentNodeChildren.at(1).getValue();
+                std::string typeName = currentNodeChildren.at(1)->getValue();
                 return TypeFactory::createType(typeName);
             }
             else
@@ -65,18 +65,18 @@ public:
         Node currentNode = mainNode;
         std::string variableName;
         IType variableType = TypeFactory::createType("any");
-        std::vector<Node> currentNodeChildren = currentNode.getChildren();
-        if(currentNodeChildren.empty() || currentNodeChildren.at(0).getType() != TokenType::EQUALS || currentNodeChildren.at(0).getType() != TokenType::ID || currentNodeChildren.at(0).getType() != TokenType::COLON)
+        std::vector<std::shared_ptr<Node>> currentNodeChildren = currentNode.getChildren();
+        if(currentNodeChildren.empty() || currentNodeChildren.at(0)->getType() != TokenType::EQUALS || currentNodeChildren.at(0)->getType() != TokenType::ID || currentNodeChildren.at(0)->getType() != TokenType::COLON)
         {
             throw std::runtime_error("Semantic error: processVarDeclaration: Invalid variable declaration");
         }
-        if (currentNodeChildren.at(0).getType() == TokenType::EQUALS)
+        if (currentNodeChildren.at(0)->getType() == TokenType::EQUALS)
         {
             return processVarKeyword(currentNode);
         }
-        if(currentNodeChildren.at(0).getType() == TokenType::ID)
+        if(currentNodeChildren.at(0)->getType() == TokenType::ID)
         {
-            variableName = currentNodeChildren.at(0).getValue();
+            variableName = currentNodeChildren.at(0)->getValue();
         }
         else
         {
@@ -89,9 +89,9 @@ public:
     VariableSymbol workWithNode()
     {
         Node currentNode = getSelfNode();
-        std::vector<Node> currentNodeChildren = currentNode.getChildren();
+        std::vector<std::shared_ptr<Node>> currentNodeChildren = currentNode.getChildren();
         std::string variableName;
-        if (currentNodeChildren.at(0).getType() == TokenType::VAR)
+        if (currentNodeChildren.at(0)->getType() == TokenType::VAR)
         {
             return processVarKeyword(currentNode);
         }

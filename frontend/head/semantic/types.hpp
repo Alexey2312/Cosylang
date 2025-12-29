@@ -47,7 +47,7 @@ class IsType
     std::optional<std::vector<std::string>> names = std::nullopt;
 public:
     IsType(std::string name, IType thisType) : name(name), thisType(thisType) {}
-    IsType(std::vector<std::string> names, IType thisType) : names(names), thisType(thisType) {}
+    IsType(std::vector<std::string> names, IType thisType) : thisType(thisType), names(names) {}
 
     bool checkTypeName(std::string typeName)
     {

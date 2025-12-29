@@ -9,7 +9,7 @@ public:
     std::string getName() const { return flagName; }
 };
 
-struct flagName
+class flagName
 {
 private:
     std::string name = "";

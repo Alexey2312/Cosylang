@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "kinds.hpp"
+#include "../../code/semantic/functionFlags.cpp"
 #include "types.hpp"
 
 class ISymbol
@@ -22,8 +23,6 @@ public:
     ISymbol* getOwner() const { return owner; }
 };
 
-class IFlag;
-
 class VariableSymbol : ISymbol
 {
 private:
@@ -40,6 +39,7 @@ class FunctionSymbol : ISymbol
     std::string name;
     std::vector<ISymbol> arguments;
     std::vector<IFlag> flags;
+
 public:
     std::vector<ISymbol> getArguments() const { return arguments; }
     FunctionSymbol(std::string name = "", std::vector<ISymbol> arguments = {}, std::vector<IFlag> flags = {}, ISymbol* owner = nullptr) : ISymbol(name, FunctionKind(), owner), arguments(arguments), flags(flags) {}

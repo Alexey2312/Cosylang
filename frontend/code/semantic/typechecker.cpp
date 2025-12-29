@@ -1,4 +1,5 @@
 #include "../../head/semantic/typechecker.hpp"
+#include <stdexcept>
 
 class CheckersRegistry
 {
@@ -15,7 +16,7 @@ public:
     }
 };
 
-void TypeChecking::startTypeChecking(Node node)
+inline void TypeChecking::startTypeChecking(Node node)
 {
     std::vector<TypeChecker> validCheckers = CheckersRegistry::getCheckers();
     bool found = false;
