@@ -7,6 +7,7 @@
 #include "../convertor.cpp"
 #include "../../head/parser/reporterHolder.hpp"
 #include <cstdint>
+#include <exception>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -139,27 +140,24 @@ public:
             return tokens.at(PositionManager::getPosition() - 1);
 
         }
-        catch (...)
+        catch (const std::exception&  error)
         {
-            reporter.report(Reporter::ERROR, "lastToken: Failed to retrieve last token");
-            throw std::runtime_error("lastToken: Failed to retrieve last token");
+            reporter.report(Reporter::ERROR, "lastToken: exception caught: " + std::string(error.what()));
+            return tokens.at(PositionManager::getPosition() - 1);
         }
     }
 
-    static token peekToken() noexcept
+    static token peekToken()
     {
         try
         {
             reporter.report(Reporter::INFO, "peekToken: Peek token called, input position: " + std::to_string(PositionManager::getPosition()) + ", token: " + tokens.at(PositionManager::getPosition()).getValue());
 
-            PositionManager::advance();
-
-            reporter.report(Reporter::INFO, "peekToken: Advanced position to " + std::to_string(PositionManager::getPosition()));
-
-            return getTokens().at(PositionManager::getPosition() - 1);
+            return getTokens().at(PositionManager::getPosition());
         }
         catch (std::out_of_range& error)
         {
+            //throw std::runtime_error("peekToken: Failed to retrieve token");
             return token(TokenType::EOL, "peekEOL");
         }
     }
@@ -184,40 +182,36 @@ bool match(token inputToken = TokensVectorManager::peekToken(), TokenType expect
     return false;
 }
 
-void eat(token inputToken = TokensVectorManager::peekToken(), TokenType expectedToken = TokenType::EOL, std::string message = "", Reporter& reporter = ReporterHolderForParser::getReporter())
+
+void eat(token inputToken = TokensVectorManager::peekToken(), TokenType expectedType = TokenType::EOL, std::string message = "", Reporter& reporter = ReporterHolderForParser::getReporter())
 {
-    reporter.report(Reporter::INFO, "eat: Eat called, message: " + message);
+    reporter.report(Reporter::INFO, "eat: Eat called, message: " + message + ", expecting: " + std::to_string(static_cast<int>(expectedType)));
 
     try
     {
-        reporter.report(Reporter::INFO, "eat: Eat called, message: " + message + ", inputToken: " + inputToken.getValue());
+        token inputToken = TokensVectorManager::peekToken();
 
-        if (inputToken.getType() == expectedToken)
+        reporter.report(Reporter::INFO, "eat: Current token for check: " + inputToken.getValue() + ", at position: " + std::to_string(PositionManager::getPosition()));
+
+        if (inputToken.getType() == expectedType || expectedType == TokenType::EXPRESSION)
         {
-            if (PositionManager::getPosition() + 1 < TokensVectorManager::getTokens().size())
-            {
-                reporter.report(Reporter::INFO, "eat: Token matched, advancing position to " + std::to_string(PositionManager::getPosition()) + ". Token is: " + TokensVectorManager::getTokens().at(PositionManager::getPosition()).getValue());
-            }
-            else
-            {
-                reporter.report(Reporter::ERROR, "eat: out of range or last token in line. Token is: " + inputToken.getValue() + ", position: " + std::to_string(PositionManager::getPosition()) + ", TokensVector size: " + std::to_string(TokensVectorManager::getTokens().size()));
-            }
+            reporter.report(Reporter::INFO, "eat: Token matched: " + inputToken.getValue() + ". Advancing position.");
             PositionManager::advance();
         }
         else
         {
-            reporter.report(Reporter::ERROR, "eat: Token mismatch, got: " + inputToken.getValue());
+            reporter.report(Reporter::ERROR, "eat: Token mismatch! Expected: " + std::to_string(static_cast<int>(expectedType)) + ", got: " + inputToken.getValue() + ", at position: " + std::to_string(PositionManager::getPosition()));
             reporter.printReports();
-            throw std::runtime_error(message + ", got: " + TokensVectorManager::getTokens().at(PositionManager::getPosition()).getValue() + ", position: " + std::to_string(PositionManager::getPosition()));
+            throw std::runtime_error(message + ", got: " + inputToken.getValue() + ", position: " + std::to_string(PositionManager::getPosition()));
         }
     }
     catch (const std::exception& error)
     {
         reporter.printReports();
-
         throw std::runtime_error("eat: Exception caught: " + std::string(error.what()));
     }
 }
+
 
 
 void eatTest(Reporter& reporter = ReporterHolderForParser::getReporter())
@@ -234,7 +228,7 @@ std::shared_ptr<Node> parseFactorForNumber(Reporter& reporter = ReporterHolderFo
     {
         reporter.report(Reporter::INFO, "parseFactorForNumber: Parsing factor for number, position: " + std::to_string(PositionManager::getPosition()));
         eat(TokensVectorManager::peekToken(), TokenType::ANY_NUMBER, "Expected a number");
-        std::shared_ptr<Node> numberNode = std::make_shared<Node>(Node(TokenType::ANY_NUMBER, TokensVectorManager::peekToken().getValue(), 1, {}, std::weak_ptr<Node>(),OperationType::NOT_AN_OPERATION));
+        std::shared_ptr<Node> numberNode = std::make_shared<Node>(Node(TokenType::ANY_NUMBER, TokensVectorManager::lastToken().getValue(), 1, {}, std::weak_ptr<Node>(),OperationType::NOT_AN_OPERATION));
         return numberNode;
     }
     catch (const std::exception& error)
@@ -311,7 +305,7 @@ std::shared_ptr<Node> parseFactor(token inputToken, Reporter& reporter)
        }
 
         reporter.report(Reporter::INFO, "parseFactor: Parsing factor, token: " + inputToken.getValue());
-        std::vector<IsFactorTokenOfThisClass> isFactorTokensCheckers
+        std::vector<IsFactorTokenOfThisClass> isFactorTokensCheckers =
         {
             IsFactorTokenOfThisClass(TokenType::ANY_NUMBER, parseFactorForNumber),
             IsFactorTokenOfThisClass(TokenType::ID, parseFactorForID),
@@ -327,7 +321,7 @@ std::shared_ptr<Node> parseFactor(token inputToken, Reporter& reporter)
                 return checker.getParseFunction()(ReporterHolderForParser::getReporter());
             }
         }
-        reporter.report(Reporter::ERROR, "parseFactor: Unexpected token: " + inputToken.getValue());
+        reporter.report(Reporter::ERROR, "parseFactor: Unexpected token, value: " + inputToken.getValue());
         throw std::runtime_error("ParseeeFactor: Unexpected token: " + inputToken.getValue());
     }
     catch (const std::exception& error)
@@ -350,11 +344,11 @@ std::shared_ptr<Node> parseTerm(token inputToken, Reporter& reporter)
 
         reporter.report(Reporter::INFO, "parseTerm: Factor parsedd, outNode: " + outNode->getValue());
 
-        while (/* match(TokensVectorManager::lastToken(), TokenType::MUL) || match(TokensVectorManager::lastToken(), TokenType::DIV) && TokensVectorManager::lastToken().getType() != TokenType::EOL */ false )
+        while (TokensVectorManager::peekToken().getType() == TokenType::MUL || TokensVectorManager::peekToken().getType() == TokenType::DIV)
         {
             reporter.report(Reporter::INFO, "parseTerm: Parsing term, position: " + std::to_string(PositionManager::getPosition()) + " mul!");
             std::shared_ptr<Node> left = outNode;
-            operation = createNode(TokensVectorManager::lastToken().getType(), TokensVectorManager::lastToken().getValue(), precedence, OperationType::BINARY); // last token, because we use match() in while condition
+            operation = createNode(TokensVectorManager::lastToken().getType(), TokensVectorManager::peekToken().getValue(), precedence, OperationType::BINARY);
             std::shared_ptr<Node> right = parseFactor(TokensVectorManager::peekToken());
 
             outNode = std::make_shared<Node>(Node(operation->getType(), operation->getValue(), 0, {}, std::weak_ptr<Node>(), OperationType::BINARY));
@@ -379,7 +373,7 @@ std::shared_ptr<Node> parseTerm(token inputToken, Reporter& reporter)
 
 
 
-std::shared_ptr<Node> parseExpression(token inputToken, Reporter& reporter)
+std::shared_ptr<Node> parseExpression(token inputToken = TokensVectorManager::peekToken(), Reporter& reporter)
 {
     try
     {
@@ -387,7 +381,8 @@ std::shared_ptr<Node> parseExpression(token inputToken, Reporter& reporter)
 
         std::shared_ptr<Node> outNode = parseTerm(inputToken);
 
-        reporter.report(Reporter::INFO, "parseExpression: Term parsed, Node: " + outNode->getValue());
+        reporter.report(Reporter::INFO, "1parseExpression: Term parsed, Node: " + outNode->getValue());
+
         if (inputToken.getType() == TokenType::STRING)
         {
             reporter.report(Reporter::INFO, "parseExpression: String token found");
@@ -396,14 +391,14 @@ std::shared_ptr<Node> parseExpression(token inputToken, Reporter& reporter)
         }
 
         reporter.report(Reporter::INFO, "parseExpression: Parsing term");
-        int i = 0;
-        while (/*match(TokensVectorManager::peekToken(), TokenType::PLUS) || match(TokensVectorManager::peekToken(), TokenType::MINUS) */i < 1)
+        while (TokensVectorManager::peekToken().getType() == TokenType::PLUS || TokensVectorManager::peekToken().getType() == TokenType::MINUS)
         {
-            i++;
             std::shared_ptr<Node> left = outNode;
+            reporter.report(Reporter::INFO, "parseExpression: left: " + left->getValue());
             reporter.report(Reporter::INFO, "parseExpression: Parsing binary operation");
 
             token operation = TokensVectorManager::peekToken();
+            PositionManager::advance();
             reporter.report(Reporter::INFO, "parseExpression: operation: " + operation.getValue());
 
             std::shared_ptr<Node> right = parseTerm(TokensVectorManager::peekToken());
@@ -512,7 +507,7 @@ class SelectParser
     };
 
 public:
-    static std::shared_ptr<Node> defineKeyword(token firstToken)
+    static std::shared_ptr<Node> defineKeyword(token firstToken, Reporter& reporter = ReporterHolderForParser::getReporter())
     {
         std::vector<IsThisParseMethod> checkers =
         {
@@ -524,6 +519,7 @@ public:
         {
             if(checker.check(firstToken.getType()))
             {
+                reporter.report(Reporter::INFO, "Parser: Keyword defined");
                 return checker.parseKeyword();
             }
         }
@@ -542,7 +538,8 @@ std::shared_ptr<Node> Parser::parse(std::vector<token> inputTokens, Reporter& re
     }
     reporter.report(Reporter::INFO, "Parser: Parsing started");
     TokensVectorManager::setTokens(inputTokens);
-    std::shared_ptr<Node> ast = SelectParser::defineKeyword(inputTokens.at(0));
+    reporter.report(Reporter::INFO, "Parser: Tokens setted");
+    std::shared_ptr<Node> ast = SelectParser::defineKeyword(TokensVectorManager::getTokens().at(0));
     return ast;
 }
 
@@ -555,6 +552,12 @@ void testParser(Reporter& reporter)
     std::vector<token> tokens = {token(TokenType::ANY_NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "321")};
     TokensVectorManager::setTokens(tokens);
     std::shared_ptr<Node> node = parser.parse(tokens, reporter);
+
+    for(auto& tokenValue : TokensVectorManager::getTokens())
+    {
+        std::cout << "Token: " << tokenValue.getType() << ", Value: " << tokenValue.getValue() << std::endl;
+    }
+
     if (node->getChildren().size() > 0)
     {
         reporter.printReports();

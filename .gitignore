@@ -5,3 +5,5 @@
 *.elf
 myprog
 .zed
+build
+log.txt
