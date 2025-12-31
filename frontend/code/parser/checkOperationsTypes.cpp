@@ -26,7 +26,7 @@ std::vector<TokenType> keywords = {
 
 bool isBinaryOperator(TokenType token)
 {
-    for (auto binOperation : binaryOperators)
+    for (auto& binOperation : binaryOperators)
     {
         if (token == binOperation)
         {
@@ -38,7 +38,7 @@ bool isBinaryOperator(TokenType token)
 
 bool isUnaryOperator(TokenType token)
 {
-    for (auto unaryOperation : unaryOperators)
+    for (auto& unaryOperation : unaryOperators)
     {
         if (token == unaryOperation)
         {
@@ -50,7 +50,7 @@ bool isUnaryOperator(TokenType token)
 
 bool isNotOperator(TokenType token)
 {
-    for (auto notOperation : notOperators)
+    for (auto& notOperation : notOperators)
     {
         if (token == notOperation)
         {
@@ -65,7 +65,7 @@ bool isNotOperator(TokenType token)
 void testIsBinaryOperator()
 {
     std::string testingObject = "isBinaryOperator";
-    for(auto token : binaryOperators)
+    for(auto& token : binaryOperators)
     {
         if(isBinaryOperator(token))
         {
@@ -81,7 +81,7 @@ void testIsBinaryOperator()
 void testIsUnaryOperator()
 {
     std::string testingObject = "isUnaryOperator";
-    for(auto token : unaryOperators)
+    for(auto& token : unaryOperators)
     {
         if(isUnaryOperator(token))
         {
@@ -97,7 +97,7 @@ void testIsUnaryOperator()
 void testIsNotOperator()
 {
     std::string testingObject = "isNotOperator";
-    for(auto token : notOperators)
+    for(auto& token : notOperators)
     {
         if(isNotOperator(token))
         {

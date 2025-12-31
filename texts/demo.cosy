@@ -1,0 +1,85 @@
+import $stdlib
+
+component additionComponent
+{
+    func add(firstNumber: int32, secondNumber: int32) -> int32
+    {
+        return firstNumber + secondNumber
+    }
+}
+
+component subtractionComponent
+{
+    func subtract(firstNumber: int32, secondNumber: int32) -> int32
+    {
+        return firstNumber - secondNumber
+    }
+}
+
+component multiplicationComponent
+{
+    func multiply(firstNumber: int32, secondNumber: int32) -> int32
+    {
+        return firstNumber * secondNumber
+    }
+}
+
+component divisionComponent
+{
+    func divide(firstNumber: int32, secondNumber: int32) -> int32
+    {
+        return firstNumber / secondNumber
+    }
+}
+
+body calculator
+{
+    func calculate(firstNumber: int32, action: string, secondNumber: int32) -> int32
+    {
+        switch action
+        {
+            case "+"
+            {
+                return additionComponent.add(firstNumber, secondNumber)
+            }
+            case "-"
+            {
+                return subtractionComponent.subtract(firstNumber, secondNumber)
+            }
+            case "*"
+            {
+                return multiplicationComponent.multiply(firstNumber, secondNumber)
+            }
+            case "/"
+            {
+                return divisionComponent.divide(firstNumber, secondNumber)
+            }
+            default
+            {
+                stdlib.throwError(stdlib.stringJoin("Invalid action: ", action))
+            }
+        }
+    }
+}
+
+func main() -> void
+{
+    calculator calc = calculator.new()
+
+    var first: int32
+    var second: int32
+    var action: string
+
+    print("Enter first number...")
+    first = stdlib.tryCast(read(stdlib.console), int32, "You entered an invalid number.")
+
+    print("Enter second number...")
+    second = stdlib.tryCast(read(stdlib.console), int32, "You entered an invalid number.")
+
+    print("Enter action (+, -, *, /)... ")
+    action = read(stdlib.console)
+
+    println(stdlib.stringJoin("result:", calc.calculate(first, action, second)))
+
+    return void
+}

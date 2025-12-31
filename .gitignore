@@ -1,8 +1,10 @@
 *.o
 *.obj
-*.lo
 *.out
 *.exe
 *.elf
 myprog
 .zed
+build
+log.txt
+clangbuild
