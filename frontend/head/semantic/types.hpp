@@ -53,7 +53,7 @@ public:
     {
         if (names.has_value())
         {
-            for (const auto name : names.value())
+            for (const auto& name : names.value())
             {
                 if (name == typeName)
                 {
@@ -107,7 +107,7 @@ public:
     static IType createType(std::string typeName)
     {
         initIsTypes();
-        for (auto isType : isTypes)
+        for (auto& isType : isTypes)
         {
             if (isType.checkTypeName(typeName))
             {

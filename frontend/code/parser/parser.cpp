@@ -4,7 +4,6 @@
 #include "../../head/parser/nodeCreator.hpp"
 #include "../../head/reporter.hpp"
 #include "../../head/algorithms/sillySearch.hpp"
-#include "../convertor.cpp"
 #include "../../head/parser/reporterHolder.hpp"
 #include <cstdint>
 #include <exception>
