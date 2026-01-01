@@ -424,6 +424,8 @@ std::shared_ptr<Node> parseExpression(token inputToken = TokensVectorManager::pe
     }
 }
 
+std::shared_ptr<Node> defineKeyword(token firstToken, Reporter& reporter);
+
 class IParse
 {
 public:
@@ -448,7 +450,7 @@ public:
         std::shared_ptr<Node> out = createNode(TokenType::EXPRESSION);
         out->addChild(createNode(TokenType::LEFT_PAREN, "("));
 
-        out->addChild(parseExpression(TokensVectorManager::peekToken()));
+        out->addChild(defineKeyword(TokensVectorManager::peekToken(), ReporterHolderForParser::getReporter()));
 
         eat(TokensVectorManager::peekToken(), TokenType::RIGHT_PAREN);
         out->addChild(createNode(TokenType::RIGHT_PAREN, ")"));
@@ -467,7 +469,7 @@ public:
         reporter.report(Reporter::INFO, "defineKeyword: IF keyword found");
         eat(TokensVectorManager::peekToken(), parsingToken.getType(), "Expected 'if' keyword");
         std::shared_ptr<Node> ifKeyword  = std::make_shared<Node>(Node(parsingToken.getType(), parsingToken.getValue(), 1, {}, std::nullopt, OperationType::KEYWORD));
-        std::shared_ptr<Node> out = parseExpression(TokensVectorManager::peekToken());
+        std::shared_ptr<Node> out = defineKeyword(TokensVectorManager::peekToken(), ReporterHolderForParser::getReporter());
         out->setParent(ifKeyword);
         ifKeyword->addChild(out);
         return ifKeyword;
@@ -510,7 +512,7 @@ public:
             {
                 equals->addChild(name);
             }
-            equals->addChild(parseExpression(TokensVectorManager::peekToken())); // value
+            equals->addChild(defineKeyword(TokensVectorManager::peekToken(), ReporterHolderForParser::getReporter())); // value
             varKeyword->addChild(equals);
             PositionManager::advance();
         }
@@ -520,48 +522,43 @@ public:
 };
 
 
-class SelectParser
+
+class IsThisParseMethod
 {
-    class IsThisParseMethod
-    {
-        TokenType tokenType;
-        std::shared_ptr<IParse> parseMethod = nullptr;
-    public:
-        IsThisParseMethod(TokenType type, std::shared_ptr<IParse> parseMethod) : tokenType(type), parseMethod(parseMethod) {}
-        bool check(TokenType type)
-        {
-            return type == tokenType;
-        }
-        std::shared_ptr<Node> parseKeyword()
-        {
-            std::shared_ptr<Node> outNode = parseMethod->parseKeyword();
-            return outNode;
-        }
-    };
-
+    TokenType tokenType;
+    std::shared_ptr<IParse> parseMethod = nullptr;
 public:
-    static std::shared_ptr<Node> defineKeyword(token firstToken, Reporter& reporter = ReporterHolderForParser::getReporter())
+    IsThisParseMethod(TokenType type, std::shared_ptr<IParse> parseMethod) : tokenType(type), parseMethod(parseMethod) {}
+    bool check(TokenType type)
     {
-        std::vector<IsThisParseMethod> checkers =
-        {
-            IsThisParseMethod(TokenType::PRINT, std::make_shared<ParsePrint>()),
-            IsThisParseMethod(TokenType::IF, std::make_shared<ParseIf>()),
-            IsThisParseMethod(TokenType::VAR, std::make_shared<ParseVar>()),
-        };
-
-        for(auto& checker : checkers)
-        {
-            if(checker.check(firstToken.getType()))
-            {
-                reporter.report(Reporter::INFO, "Parser: Keyword defined");
-                return checker.parseKeyword();
-            }
-        }
-        return parseExpression(firstToken);
+        return type == tokenType;
+    }
+    std::shared_ptr<Node> parseKeyword()
+    {
+        std::shared_ptr<Node> outNode = parseMethod->parseKeyword();
+        return outNode;
     }
 };
 
+std::shared_ptr<Node> defineKeyword(token firstToken, Reporter& reporter = ReporterHolderForParser::getReporter())
+{
+    std::vector<IsThisParseMethod> checkers =
+    {
+        IsThisParseMethod(TokenType::PRINT, std::make_shared<ParsePrint>()),
+        IsThisParseMethod(TokenType::IF, std::make_shared<ParseIf>()),
+        IsThisParseMethod(TokenType::VAR, std::make_shared<ParseVar>()),
+    };
 
+    for(auto& checker : checkers)
+    {
+        if(checker.check(firstToken.getType()))
+        {
+            reporter.report(Reporter::INFO, "Parser: Keyword defined");
+            return checker.parseKeyword();
+        }
+    }
+    return parseExpression(firstToken);
+}
 
 std::shared_ptr<Node> Parser::parse(std::vector<token> inputTokens, Reporter& reporter = ReporterHolderForParser::getReporter())
 {
@@ -573,7 +570,7 @@ std::shared_ptr<Node> Parser::parse(std::vector<token> inputTokens, Reporter& re
     reporter.report(Reporter::INFO, "Parser: Parsing started");
     TokensVectorManager::setTokens(inputTokens);
     reporter.report(Reporter::INFO, "Parser: Tokens setted");
-    std::shared_ptr<Node> ast = SelectParser::defineKeyword(TokensVectorManager::getTokens().at(0));
+    std::shared_ptr<Node> ast = defineKeyword(TokensVectorManager::getTokens().at(0));
     return ast;
 }
 
@@ -603,7 +600,7 @@ void testParser(Reporter& reporter)
     else
     {
         reporter.printReports();
-        node->printChildren();
+        //node->printChildren();
         std::cout << "test1 failed: Node: " + node->getValue() + " unexpected number of nodes, " + std::to_string(node->getChildren().size()) + ", expected 1 :(" << std::endl;
 
         if(node->getParent().has_value())
