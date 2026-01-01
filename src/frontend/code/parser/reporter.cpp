@@ -22,8 +22,10 @@ void Reporter::report(ReportType type, const std::string& message)
             break;
         }
         default:
+        {
             throw std::runtime_error("Invalid report type to send " + message);
             break;
+        }
     }
 }
 
