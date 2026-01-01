@@ -11,6 +11,7 @@ build:
     just run
 
 clean-build:
+    just clear
     just build
     just clear
 
@@ -21,6 +22,6 @@ debug-build:
     just run
 
 use-clang:
-    clear
+    just clear
     clang++ -std=c++23 -g -O0 -Wall -Wextra -fsanitize=address,undefined -fno-omit-frame-pointer $(find . -name '*.cpp' -print0 | xargs -0) -o clangbuild
     ./clangbuild
