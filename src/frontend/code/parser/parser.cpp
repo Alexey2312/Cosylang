@@ -521,6 +521,96 @@ public:
     }
 };
 
+class ParseFunctionDeclaration : public IParse
+{
+    token parsingToken = token(TokenType::FUNC, "func");
+
+    std::vector<TokenType> modificatorsTypes =
+    {
+        TokenType::PUBLIC,
+        TokenType::PRIVATE,
+        TokenType::OVERRIDE,
+    };
+
+    std::vector<std::shared_ptr<Node>> findModificatorsOfFunction(token startToken)
+    {
+        std::vector<std::shared_ptr<Node>> modificators;
+        while
+        (
+            TokensVectorManager::peekToken().getType() == modificatorsTypes.at(0) ||
+            TokensVectorManager::peekToken().getType() == modificatorsTypes.at(1) ||
+            TokensVectorManager::peekToken().getType() == modificatorsTypes.at(2)
+        )
+        {
+            for (auto& modificatorType : modificatorsTypes)
+            {
+                if (TokensVectorManager::peekToken().getType() == modificatorType)
+                {
+                    modificators.push_back(createNode(modificatorType, TokensVectorManager::peekToken().getValue()));
+                    PositionManager::advance();
+                }
+            }
+        }
+        return modificators;
+    }
+
+    std::shared_ptr<Node> parseArgument()
+    {
+        eat(TokensVectorManager::peekToken(), TokenType::ID, "Expected name of argument");
+        std::shared_ptr<Node> name = createNode(TokenType::ID, TokensVectorManager::lastToken().getValue());
+        eat(TokensVectorManager::peekToken(), TokenType::COLON, "Expected ':' after argument name");
+        std::shared_ptr<Node> colon = createNode(TokenType::COLON, TokensVectorManager::lastToken().getValue());
+        colon->addChild(name);
+        colon->addChild(createNode(TokenType::TYPE_NAME, TokensVectorManager::peekToken().getValue())); //Type
+        PositionManager::advance();
+        return colon;
+    }
+public:
+    std::shared_ptr<Node> parseKeyword(Reporter& reporter = ReporterHolderForParser::getReporter()) override
+    {
+        std::vector<std::shared_ptr<Node>> modificators = findModificatorsOfFunction(TokensVectorManager::peekToken());
+        std::shared_ptr<Node> funcKeyword = createNode(parsingToken.getType(), parsingToken.getValue());
+        eat(TokensVectorManager::peekToken(), TokenType::FUNC, "Expected 'func' keyword");
+
+
+        eat(TokensVectorManager::peekToken(), TokenType::ID, "Expected name of funtion");
+        std::shared_ptr<Node> funcName = createNode(TokenType::ID, TokensVectorManager::lastToken().getValue());
+
+        std::shared_ptr<Node> arguments = createNode(TokenType::ARGUMENTS, "");
+        funcName->addChild(arguments);
+
+        eat(TokensVectorManager::peekToken(), TokenType::LEFT_PAREN, "Expected '(' after function name");
+        arguments->addChild(createNode(TokenType::LEFT_PAREN, TokensVectorManager::lastToken().getValue()));
+
+        while (TokensVectorManager::peekToken().getType() == TokenType::ID)
+        {
+            std::shared_ptr<Node> argument = parseArgument();
+            arguments->addChild(argument);
+        }
+
+        eat(TokensVectorManager::peekToken(), TokenType::RIGHT_PAREN, "Expected ')' after function name");
+        arguments->addChild(createNode(TokenType::LEFT_PAREN, ")"));
+
+        if (TokensVectorManager::peekToken().getType() == TokenType::RETURNING_TYPE_OPERATOR)
+        {
+            eat(TokensVectorManager::peekToken(), TokenType::RETURNING_TYPE_OPERATOR, "Expected '->' after function name");
+            std::shared_ptr<Node> returningTypeOperator = createNode(TokenType::RETURNING_TYPE_OPERATOR, "->");
+            std::shared_ptr<Node> returnType = createNode(TokenType::TYPE_ID, TokensVectorManager::lastToken().getValue());
+            PositionManager::advance();
+
+            funcKeyword->addChild(funcName);
+            funcName->addChild(returnType);
+            funcKeyword->addChild(returningTypeOperator);
+        }
+        else
+        {
+            funcKeyword->addChild(funcName);
+        }
+
+        return funcKeyword;
+    }
+};
+
 
 
 class IsThisParseMethod
@@ -547,6 +637,7 @@ std::shared_ptr<Node> defineKeyword(token firstToken, Reporter& reporter = Repor
         IsThisParseMethod(TokenType::PRINT, std::make_shared<ParsePrint>()),
         IsThisParseMethod(TokenType::IF, std::make_shared<ParseIf>()),
         IsThisParseMethod(TokenType::VAR, std::make_shared<ParseVar>()),
+        IsThisParseMethod(TokenType::FUNC, std::make_shared<ParseFunctionDeclaration>()),
     };
 
     for(auto& checker : checkers)
@@ -582,7 +673,8 @@ void testParser(Reporter& reporter)
     //std::vector<token> tokens = {token(TokenType::PRINT, "print"), token(TokenType::LEFT_PAREN, "("), token(TokenType::STRING, "Hello, world!"), token(TokenType::RIGHT_PAREN, ")")};
     //std::vector<token> tokens = {token(TokenType::ANY_NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "321")};
     //std::vector<token> tokens = {token(TokenType::IF, "if"), token(TokenType::ANY_NUMBER, "2"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "2")};
-    std::vector<token> tokens = {token(TokenType::VAR, "var"), token(TokenType::ID, "lalala"), token(TokenType::EQUALS, "="), token(TokenType::ANY_NUMBER, "2")};
+    //std::vector<token> tokens = {token(TokenType::VAR, "var"), token(TokenType::ID, "lalala"), token(TokenType::EQUALS, "="), token(TokenType::ANY_NUMBER, "2")};
+    std::vector<token> tokens = {token(TokenType::FUNC, "func"), token(TokenType::ID, "some"), token(TokenType::LEFT_PAREN, "("), token(TokenType::RIGHT_PAREN, ")")};
     TokensVectorManager::setTokens(tokens);
     std::shared_ptr<Node> node = parser.parse(tokens, reporter);
 

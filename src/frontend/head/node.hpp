@@ -72,6 +72,8 @@ public:
     std::vector<std::shared_ptr<Node>> getChildren() const {return children;}
     void addChild(std::shared_ptr<Node> child) {children.push_back(child);}
 
+    void setChildren(std::vector<std::shared_ptr<Node>> newChildren) {children = newChildren;}
+
     int getPriority() const {return priority;}
     void setPriority(int newPriority) {priority = newPriority;}
 

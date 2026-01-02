@@ -19,6 +19,9 @@ enum TokenType
     LEFT_PAREN,
     RIGHT_PAREN,
 
+    LEFT_BRACE,
+    RIGHT_BRACE,
+
     PLUS,
     MINUS,
     MUL,
@@ -32,6 +35,12 @@ enum TokenType
     EQUALS,
 
     FUNC,
+    OVERRIDE,
+    PUBLIC,
+    PRIVATE,
+    ARGUMENTS,
+    RETURNING_TYPE_OPERATOR,
+
 
     EXPRESSION,
 
