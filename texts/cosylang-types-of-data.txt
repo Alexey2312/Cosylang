@@ -6,12 +6,9 @@ int128,
 
 float32,
 float64,
-float128,
+float80,
 
 string,
 bool,
 
 any,
-
-error,
-warning,
