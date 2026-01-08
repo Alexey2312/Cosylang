@@ -1,85 +1,65 @@
-import $stdlib
+import <std::io>
 
-component additionComponent
+comp sayComponent
 {
-    func add(firstNumber: int32, secondNumber: int32) -> int32
+    func say(message: string) : string
     {
-        return firstNumber + secondNumber
+        return message
     }
 }
 
-component subtractionComponent
+body Cat(sayComponent) // Bodies work like static classes.
 {
-    func subtract(firstNumber: int32, secondNumber: int32) -> int32
+    var sayComp = sayComponent.new() // Types of variables can be automatically determined in compilation time.
+    pub func sayForCat() : void
     {
-        return firstNumber - secondNumber
+        sayComp.say("Meow!")
     }
 }
 
-component multiplicationComponent
+body Dog(sayComponent)
 {
-    func multiply(firstNumber: int32, secondNumber: int32) -> int32
+    var sayComp = sayComponent.new()
+    pub func sayForDog() : void
     {
-        return firstNumber * secondNumber
+        sayComp.say("Woof!")
     }
 }
 
-component divisionComponent
-{
-    func divide(firstNumber: int32, secondNumber: int32) -> int32
-    {
-        return firstNumber / secondNumber
-    }
-}
+type Animal<Cat, Dog>(sayComponent)
 
-body calculator
+func main() : void
 {
-    func calculate(firstNumber: int32, action: string, secondNumber: int32) -> int32
+    var currentAnimal: Animal?
+
+
+    println("Select your animal (Cat or Dog): ")
+
+    match std::io.getInput(std::console)
     {
-        switch action
+        case "Cat" =>
         {
-            case "+"
+            currentAnimal = Cat
+
+            if currentAnimal.is(Cat)
             {
-                return additionComponent.add(firstNumber, secondNumber)
-            }
-            case "-"
-            {
-                return subtractionComponent.subtract(firstNumber, secondNumber)
-            }
-            case "*"
-            {
-                return multiplicationComponent.multiply(firstNumber, secondNumber)
-            }
-            case "/"
-            {
-                return divisionComponent.divide(firstNumber, secondNumber)
-            }
-            default
-            {
-                stdlib.throwError(stdlib.stringJoin("Invalid action: ", action))
+                currentAnimal.sayForCat()
             }
         }
+
+        case "Dog" =>
+        {
+            currentAnimal = Dog
+
+            if currentAnimal.is(Dog)
+            {
+                currentAnimal.sayForDog()
+            }
+        }
+
+        case _ =>
+        {
+            println("Unknow animal")
+        }
     }
-}
-
-func main() -> void
-{
-    calculator calc = calculator.new()
-
-    var first: int32
-    var second: int32
-    var action: string
-
-    print("Enter first number...")
-    first = stdlib.tryCast(read(stdlib.console), int32, "You entered an invalid number.")
-
-    print("Enter second number...")
-    second = stdlib.tryCast(read(stdlib.console), int32, "You entered an invalid number.")
-
-    print("Enter action (+, -, *, /)... ")
-    action = read(stdlib.console)
-
-    println(stdlib.stringJoin("result:", calc.calculate(first, action, second)))
-
-    return void
 }

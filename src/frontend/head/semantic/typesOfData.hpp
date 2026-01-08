@@ -14,15 +14,15 @@ public:
     virtual llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context);
 };
 
-class Int : public CosylangType
+class IntType : public CosylangType
 {
     unsigned int size;
 public:
-    Int(unsigned int size = 32) : size(size) {}
+    IntType(unsigned int size = 32) : size(size) {}
 
     std::string getName() override
     {
-        return "Int";
+        return "int" + std::to_string(size);
     }
 
     llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
@@ -32,12 +32,12 @@ public:
 
 };
 
-class Float32 : public CosylangType
+class Float32Type : public CosylangType
 {
 public:
     std::string getName() override
     {
-        return "Float32";
+        return "float32";
     }
 
     llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
@@ -46,12 +46,12 @@ public:
     }
 };
 
-class Float64 : public CosylangType
+class Float64Type : public CosylangType
 {
 public:
     std::string getName() override
     {
-        return "Float64";
+        return "float64";
     }
 
     llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
@@ -60,12 +60,12 @@ public:
     }
 };
 
-class Float80 : public CosylangType
+class Float80Type : public CosylangType
 {
 public:
     std::string getName() override
     {
-        return "Float80";
+        return "float80";
     }
 
     llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
@@ -74,17 +74,32 @@ public:
     }
 };
 
-class Bool : public CosylangType
+class BoolType : public CosylangType
 {
 public:
 
     std::string getName() override
     {
-        return "Int";
+        return "bool";
     }
 
     llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
     {
         return llvm::Type::getInt1Ty(context);
+    }
+};
+
+class VoidType : public CosylangType
+{
+public:
+
+    std::string getName() override
+    {
+        return "void";
+    }
+
+    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
+    {
+        return llvm::Type::getVoidTy(context);
     }
 };

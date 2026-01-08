@@ -6,7 +6,7 @@
 class Declaration
 {
     std::string name;
-    Scope scope;
+    Scope location;
 public:
-    Declaration(const std::string& name, Scope scope);
+    Declaration(const std::string& name, Scope& scope) : name(name), location(scope) {}
 };

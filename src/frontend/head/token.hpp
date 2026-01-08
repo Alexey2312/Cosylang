@@ -1,16 +1,11 @@
 #pragma once
 #include <string>
 
-enum TokenType
+enum class TokenType
 {
-    TYPE_ID,
-    INT32,
-    STRING,
-
-    ANY_NUMBER,
+    NUMBER,
     ID,
-
-    TYPE_NAME,
+    STRING,
     VALUE,
 
     VAR,
@@ -32,7 +27,7 @@ enum TokenType
 
     PRINT,
     IF,
-    EQUALS,
+    ASSIGN,
 
     FUNC,
     OVERRIDE,

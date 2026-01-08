@@ -210,6 +210,13 @@ switch expression
 }
 ```
 
+## Циклы
+
+### While
+
+``` C
+while 
+
 ## Будет дополняться
 
 

@@ -208,8 +208,8 @@ void eat(token inputToken = TokensVectorManager::peekToken(), TokenType expected
 
 void eatTest(Reporter& reporter = ReporterHolderForParser::getReporter())
 {
-    TokensVectorManager::setTokens({token(TokenType::ANY_NUMBER, "12345"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "67890"), token(TokenType::EOL, "TestEat eol")});
-    eat(token(TokenType::ANY_NUMBER, "12345"), TokenType::ANY_NUMBER, "Expected a number", reporter);
+    TokensVectorManager::setTokens({token(TokenType::NUMBER, "12345"), token(TokenType::PLUS, "+"), token(TokenType::NUMBER, "67890"), token(TokenType::EOL, "TestEat eol")});
+    eat(token(TokenType::NUMBER, "12345"), TokenType::NUMBER, "Expected a number", reporter);
     TokensVectorManager::resetTokens();
 }
 
@@ -219,8 +219,8 @@ std::shared_ptr<Node> parseFactorForNumber(Reporter& reporter = ReporterHolderFo
     try
     {
         reporter.report(Reporter::INFO, "parseFactorForNumber: Parsing factor for number, position: " + std::to_string(PositionManager::getPosition()));
-        eat(TokensVectorManager::peekToken(), TokenType::ANY_NUMBER, "Expected a number");
-        std::shared_ptr<Node> numberNode = std::make_shared<Node>(Node(TokenType::ANY_NUMBER, TokensVectorManager::lastToken().getValue(), 1, {}, std::weak_ptr<Node>(),OperationType::NOT_AN_OPERATION));
+        eat(TokensVectorManager::peekToken(), TokenType::NUMBER, "Expected a number");
+        std::shared_ptr<Node> numberNode = std::make_shared<Node>(Node(TokenType::NUMBER, TokensVectorManager::lastToken().getValue(), 1, {}, std::weak_ptr<Node>(),OperationType::NOT_AN_OPERATION));
         return numberNode;
     }
     catch (const std::exception& error)
@@ -316,7 +316,7 @@ std::shared_ptr<Node> parseFactor(token inputToken = TokensVectorManager::peekTo
         reporter.report(Reporter::INFO, "parseFactor: Parsing factor, token: " + inputToken.getValue());
         std::vector<IsFactorTokenOfThisClass> isFactorTokensCheckers =
         {
-            IsFactorTokenOfThisClass(TokenType::ANY_NUMBER, parseFactorForNumber),
+            IsFactorTokenOfThisClass(TokenType::NUMBER, parseFactorForNumber),
             IsFactorTokenOfThisClass(TokenType::ID, parseFactorForID),
             IsFactorTokenOfThisClass(TokenType::LEFT_PAREN, parseFactorForLeftParen),
             IsFactorTokenOfThisClass(TokenType::STRING, parseFactorForString),
@@ -501,9 +501,9 @@ public:
             PositionManager::advance();
         }
 
-        if (match(TokensVectorManager::peekToken(), TokenType::EQUALS))
+        if (match(TokensVectorManager::peekToken(), TokenType::ASSIGN))
         {
-            std::shared_ptr<Node> equals = createNode(TokenType::EQUALS, "=");
+            std::shared_ptr<Node> equals = createNode(TokenType::ASSIGN, "=");
             if (colon != nullptr)
             {
                 equals->addChild(colon);
@@ -561,7 +561,7 @@ class ParseFunctionDeclaration : public IParse
         eat(TokensVectorManager::peekToken(), TokenType::COLON, "Expected ':' after argument name");
         std::shared_ptr<Node> colon = createNode(TokenType::COLON, TokensVectorManager::lastToken().getValue());
         colon->addChild(name);
-        colon->addChild(createNode(TokenType::TYPE_NAME, TokensVectorManager::peekToken().getValue())); //Type
+        colon->addChild(createNode(TokenType::ID, TokensVectorManager::peekToken().getValue())); //Type
         PositionManager::advance();
         return colon;
     }
@@ -591,11 +591,11 @@ public:
         eat(TokensVectorManager::peekToken(), TokenType::RIGHT_PAREN, "Expected ')' after function name");
         arguments->addChild(createNode(TokenType::LEFT_PAREN, ")"));
 
-        if (TokensVectorManager::peekToken().getType() == TokenType::RETURNING_TYPE_OPERATOR)
+        if (TokensVectorManager::peekToken().getType() == TokenType::COLON)
         {
-            eat(TokensVectorManager::peekToken(), TokenType::RETURNING_TYPE_OPERATOR, "Expected '->' after function name");
-            std::shared_ptr<Node> returningTypeOperator = createNode(TokenType::RETURNING_TYPE_OPERATOR, "->");
-            std::shared_ptr<Node> returnType = createNode(TokenType::TYPE_ID, TokensVectorManager::lastToken().getValue());
+            eat(TokensVectorManager::peekToken(), TokenType::COLON, "Expected ':' after function name");
+            std::shared_ptr<Node> returningTypeOperator = createNode(TokenType::COLON, ":");
+            std::shared_ptr<Node> returnType = createNode(TokenType::ID, TokensVectorManager::lastToken().getValue());
             PositionManager::advance();
 
             funcKeyword->addChild(funcName);
@@ -671,16 +671,16 @@ void testParser(Reporter& reporter)
     Parser parser = Parser();
     std::cout << "Start first test" << std::endl;
     //std::vector<token> tokens = {token(TokenType::PRINT, "print"), token(TokenType::LEFT_PAREN, "("), token(TokenType::STRING, "Hello, world!"), token(TokenType::RIGHT_PAREN, ")")};
-    //std::vector<token> tokens = {token(TokenType::ANY_NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "321")};
-    //std::vector<token> tokens = {token(TokenType::IF, "if"), token(TokenType::ANY_NUMBER, "2"), token(TokenType::PLUS, "+"), token(TokenType::ANY_NUMBER, "2")};
-    //std::vector<token> tokens = {token(TokenType::VAR, "var"), token(TokenType::ID, "lalala"), token(TokenType::EQUALS, "="), token(TokenType::ANY_NUMBER, "2")};
+    //std::vector<token> tokens = {token(TokenType::NUMBER, "123"), token(TokenType::PLUS, "+"), token(TokenType::NUMBER, "321")};
+    //std::vector<token> tokens = {token(TokenType::IF, "if"), token(TokenType::NUMBER, "2"), token(TokenType::PLUS, "+"), token(TokenType::NUMBER, "2")};
+    //std::vector<token> tokens = {token(TokenType::VAR, "var"), token(TokenType::ID, "lalala"), token(TokenType::ASSIGN, "="), token(TokenType::NUMBER, "2")};
     std::vector<token> tokens = {token(TokenType::FUNC, "func"), token(TokenType::ID, "some"), token(TokenType::LEFT_PAREN, "("), token(TokenType::RIGHT_PAREN, ")")};
     TokensVectorManager::setTokens(tokens);
     std::shared_ptr<Node> node = parser.parse(tokens, reporter);
 
     for(auto& tokenValue : TokensVectorManager::getTokens())
     {
-        std::cout << "Token: " << tokenValue.getType() << ", Value: " << tokenValue.getValue() << std::endl;
+        std::cout << "Token: " << tokenValue.getValue() << ", Value: " << tokenValue.getValue() << std::endl;
     }
 
     if (node->getChildren().size() > 0)
