@@ -8,7 +8,7 @@ comp sayComponent
     }
 }
 
-body Cat(sayComponent) // Bodies work like static classes.
+body Cat(sayComponent) // Bodies work like classes.
 {
     var sayComp = sayComponent.new() // Types of variables can be automatically determined in compilation time.
     pub func sayForCat() : void
@@ -30,7 +30,7 @@ type Animal<Cat, Dog>(sayComponent)
 
 func main() : void
 {
-    var currentAnimal: Animal?
+    var currentAnimal: Optional<Animal> = null
 
 
     println("Select your animal (Cat or Dog): ")

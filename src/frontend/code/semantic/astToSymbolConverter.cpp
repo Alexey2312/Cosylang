@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 bool AstToSymbolConverter::isTypeWithThisNameWasAlreadyDeclarated(std::string inputName, std::vector<Symbol> alreadyDeclratedTypes)
 {
@@ -75,15 +76,97 @@ std::optional<Symbol> AstToSymbolConverter::createVariableSymbolFromAST(Node& ma
     {
         std::shared_ptr<Node> currentNode = mainNode.getChildren().at(0);
 
-        VariableInfo outVariable = VariableInfo(defineVariableName(currentNode), defineVariableDataType(currentNode, declaratedTypes), defineVariableValue(currentNode, defineVariableDataType(currentNode, declaratedTypes)));
+        std::string variableName = defineVariableName(currentNode);
 
-        outVariable.setDataType(defineVariableDataType(currentNode, declaratedTypes));
+        CosylangType variableDataType = defineVariableDataType(currentNode, declaratedTypes);
+
+        CosylangValue variableValue = defineVariableValue(currentNode, variableDataType);
+
+        VariableInfo outVariable = VariableInfo(variableName, variableDataType, variableValue);
+
+        return Symbol(variableName, outVariable);
 
     }
     return std::nullopt;
 }
 
-Symbol AstToSymbolConverter::createSymbolFromAST(Node& mainNode, std::vector<Symbol> declaratedTypes)
+std::optional<Symbol> AstToSymbolConverter::createFunctiomParameterFromAST(std::shared_ptr<Node> mainNode, std::vector<Symbol> declaratedTypes)
 {
+    if (mainNode->getType() == TokenType::ASSIGN || mainNode->getType() == TokenType::COLON)
+    {
 
+
+        std::string parameterName = defineVariableName(mainNode);
+        CosylangType parameterType = defineVariableDataType(mainNode, declaratedTypes);
+        std::optional<CosylangValue> parameterValue = defineVariableValue(mainNode, parameterType);
+
+        return Symbol(parameterName, FunctionParameterInfo(parameterName, parameterType, parameterValue));
+    }
+
+    return std::nullopt;
+}
+
+CosylangType AstToSymbolConverter::defineFunctionReturningDataType(std::shared_ptr<Node> currentNode, std::vector<Symbol> declaratedTypes)
+{
+    if (currentNode->getType() == TokenType::COLON)
+    {
+        std::shared_ptr<Node> typeNode = currentNode->getChildren().at(1);
+
+        if (IsTypeNodeChecker::isValidNameOfBaseType(typeNode->getValue()) || isTypeWithThisNameWasAlreadyDeclarated(typeNode->getValue(), declaratedTypes))
+        {
+            std::optional<CosylangType> outType = TypeDefiner::defineTypeByName(typeNode->getValue());
+
+            if (outType.has_value())
+            {
+                return outType.value();
+            }
+            else
+            {
+                throw std::runtime_error("Unknow type: " + currentNode->getValue());
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Unknow type!");
+        }
+    }
+
+    throw std::runtime_error("Unknow type!");
+}
+
+std::string defineFunctionName(std::shared_ptr<Node> currentNode)
+{
+    return currentNode->getChildren().at(0)->getValue();
+}
+
+std::optional<std::vector<Symbol>> AstToSymbolConverter::defineFunctionParameters(std::shared_ptr<Node> currentNode, std::vector<Symbol> declaratedTypes)
+{
+    if (currentNode->getType() == TokenType::ARGUMENTS)
+    {
+        std::vector<std::optional<Symbol>> parametersVector;
+        for(auto& parameter : currentNode->getChildren())
+        {
+            parametersVector.push_back(createFunctiomParameterFromAST(parameter, declaratedTypes));
+        }
+    }
+    throw std::runtime_error("Unvalid currentNode in AstToSymbolConverter::defineFunctionParameters");
+}
+
+std::optional<Symbol> AstToSymbolConverter::createFunctionSymbolFromAST(Node& mainNode, std::vector<Symbol> declaratedTypes)
+{
+    if (mainNode.getType() == TokenType::FUNC)
+    {
+        std::shared_ptr<Node> currentNode = mainNode.getChildren().at(0);
+
+        CosylangType defineParameterDataType(std::shared_ptr<Node> currentNode, std::vector<Symbol> declaratedTypes);
+        std::string defineParameterName(std::shared_ptr<Node> currentNode);
+        std::optional<CosylangValue> defineParameterDefaultValue(std::shared_ptr<Node> currentNode, CosylangType typeOfParameter);
+    }
+
+    return std::nullopt;
+}
+
+std::optional<Symbol> AstToSymbolConverter::createSymbolFromAST(Node& mainNode, std::vector<Symbol> declaratedTypes)
+{
+    return createVariableSymbolFromAST(mainNode, declaratedTypes);
 }

@@ -2,7 +2,6 @@
 
 #include "typesOfData.hpp"
 #include "cosylangValue.hpp"
-#include <llvm/IR/DerivedTypes.h>
 #include <string>
 #include <variant>
 #include <optional>
@@ -72,10 +71,10 @@ public:
 class Symbol
 {
     std::string name;
-    std::variant<VariableInfo, FunctionInfo> kindInfo;
+    std::variant<VariableInfo, FunctionInfo, FunctionParameterInfo> kindInfo;
 
 public:
-    Symbol(const std::string& thisName, std::variant<VariableInfo, FunctionInfo> thisKindInfo) : name(thisName), kindInfo(thisKindInfo) {}
+    Symbol(const std::string& thisName, std::variant<VariableInfo, FunctionInfo, FunctionParameterInfo> thisKindInfo) : name(thisName), kindInfo(thisKindInfo) {}
 
     std::optional<const FunctionInfo*> getFunctionInfo() const
     {
@@ -93,5 +92,10 @@ public:
             return returningVariableInfo;
         }
         return std::nullopt;
+    }
+
+    std::string getName()
+    {
+        return name;
     }
 };

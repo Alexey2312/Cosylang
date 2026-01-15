@@ -25,7 +25,7 @@ public:
     {
         std::vector<std::string> vaildNamesOfThisType = {"float8", "float16", "float32", "float64", "float80"};
 
-        for(std::string currentName : vaildNamesOfThisType)
+        for(std::string& currentName : vaildNamesOfThisType)
         {
             if (checkingNode->getValue() == currentName)
             {
@@ -77,7 +77,7 @@ public:
     {
         for(std::function<bool(std::shared_ptr<Node>)> currentCheckingFunction : checkingFunctions)
         {
-            if (currentCheckingFunction(std::make_shared<Node>(name)))
+            if (currentCheckingFunction(std::make_shared<Node>(TokenType::ID, name)))
             {
                 return true;
             }

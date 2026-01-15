@@ -1,17 +1,13 @@
 #pragma once
 
-#include <llvm/Support/Casting.h>
 #include <string>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/DerivedTypes.h>
 
 
 class CosylangType
 {
 public:
-
-    virtual std::string getName();
-    virtual llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context);
+    virtual ~CosylangType() = default;
+    virtual std::string getName() {  return "unknow"; };
 };
 
 class IntType : public CosylangType
@@ -24,12 +20,6 @@ public:
     {
         return "int" + std::to_string(size);
     }
-
-    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
-    {
-        return llvm::Type::getIntNTy(context, size);
-    }
-
 };
 
 class Float32Type : public CosylangType
@@ -38,11 +28,6 @@ public:
     std::string getName() override
     {
         return "float32";
-    }
-
-    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
-    {
-        return llvm::Type::getFloatTy(context);
     }
 };
 
@@ -54,10 +39,6 @@ public:
         return "float64";
     }
 
-    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
-    {
-        return llvm::Type::getDoubleTy(context);
-    }
 };
 
 class Float80Type : public CosylangType
@@ -68,10 +49,6 @@ public:
         return "float80";
     }
 
-    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
-    {
-        return llvm::Type::getX86_FP80Ty(context);
-    }
 };
 
 class BoolType : public CosylangType
@@ -83,10 +60,6 @@ public:
         return "bool";
     }
 
-    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
-    {
-        return llvm::Type::getInt1Ty(context);
-    }
 };
 
 class VoidType : public CosylangType
@@ -97,9 +70,12 @@ public:
     {
         return "void";
     }
+};
 
-    llvm::Type* getThisTypeForLLVM(llvm::LLVMContext& context) override
+class UnknownType : public CosylangType
+{
+    std::string getName() override
     {
-        return llvm::Type::getVoidTy(context);
+        return "unknow";
     }
 };

@@ -27,7 +27,7 @@ class Node
     OperationType operation;
 
 public:
-    Node(TokenType type, std::string value, int priority, std::vector<std::shared_ptr<Node>> children, std::optional<std::weak_ptr<Node>> parent = std::nullopt, OperationType operation = NOT_AN_OPERATION) : type(type), value(value), priority(priority), children(children), parent(parent), operation(operation) {}
+    Node(TokenType type, std::string value, int priority = 0, std::vector<std::shared_ptr<Node>> children = {}, std::optional<std::weak_ptr<Node>> parent = std::nullopt, OperationType operation = NOT_AN_OPERATION) : type(type), value(value), priority(priority), children(children), parent(parent), operation(operation) {}
 
     Node(const Node& otherNode) : type(otherNode.type), value(otherNode.value), priority(otherNode.priority), children(), parent(otherNode.parent), operation(otherNode.operation)
     {
@@ -61,7 +61,7 @@ public:
         {
             throw std::runtime_error("Node: " + value + ", parent node hasn't value");
         }
-        if (!parent.value().expired())
+        if (parent.value().expired())
         {
             throw std::runtime_error("Node: " + value +", parent node is nullpointer");
         }

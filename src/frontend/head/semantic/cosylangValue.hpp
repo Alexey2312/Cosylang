@@ -26,6 +26,6 @@ public:
         return value;
     }
 
-    CosylangValue(std::shared_ptr<Node> newValue, CosylangType typeOfValue) : value(newValue), type(typeOfValue) {}
+    CosylangValue(std::shared_ptr<Node> newValue, CosylangType typeOfValue) : type(typeOfValue), value(newValue) {}
 
 };

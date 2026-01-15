@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 class SymbolTable
 {
@@ -32,7 +33,7 @@ public:
         symbols.erase(nameOfDeletingSymbol);
     }
 
-    bool isSymbolWithThisNamrInSymbolTable(std::string nameOfSymbol)
+    bool isSymbolWithThisNameInSymbolTable(std::string nameOfSymbol)
     {
         return symbols.find(std::move(nameOfSymbol)) != symbols.end();
     }
@@ -45,4 +46,18 @@ public:
         }
         return std::nullopt;
     }
+
+    std::vector<Symbol> getAllSymbolsFromTable()
+    {
+        std::vector<Symbol> outVector;
+        outVector.reserve(symbols.size());
+
+        for(const auto& [key, value] : symbols)
+        {
+            outVector.push_back(value);
+        }
+        return outVector;
+    }
+
+    SymbolTable() {}
 };
