@@ -1,4 +1,6 @@
+#include "../external/silteli.hpp"
+
 int main()
 {
-    return 0;
+    Silteli::TestManager::runTests();
 }

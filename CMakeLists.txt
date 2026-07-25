@@ -4,7 +4,7 @@ project(Cosylang CXX)
 
 set(PROJECT_SOURCES
     src/main.cpp
-    src/frontend/lexer/token/token.cpp
+    tests/utills-tests/arena-allocator/arena-alloc-test.cpp
 )
 
 add_executable(Cosylang ${PROJECT_SOURCES})

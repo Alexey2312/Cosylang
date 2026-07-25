@@ -42,6 +42,9 @@ enum class TokenType
     LEFT_BRACKET, // (
     RIGHT_BRACKET, // )
 
+    LEFT_CURLY_BRACKET, // {
+    RIGHT_CURLY_BRACKET, // }
+
     LEFT_SQUARE_BRACKET, // [
     RIGHT_SQUARE_BRACKET, // ]
 
@@ -77,8 +80,6 @@ enum class TokenType
     BODY, // keyword 'body'
 
     TYPE, // type
-
-    CODE_BLOCK, // { }
 
     END_OF_FILE
 };
