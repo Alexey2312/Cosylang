@@ -1,0 +1,13 @@
+{
+  "date": "2026-08-12T18:50:09.227899486+03:00",
+  "data": {
+    "/home/alex/Documents/Cosylang/CMakeLists.txt": [
+      {
+        "label": "PROJECT_SOURCES",
+        "kind": 12,
+        "detail": "Value",
+        "documentation": "defined variable\nfrom: /home/alex/Documents/Cosylang/CMakeLists.txt"
+      }
+    ]
+  }
+}

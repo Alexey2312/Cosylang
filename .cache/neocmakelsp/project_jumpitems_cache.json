@@ -1,0 +1,22 @@
+{
+  "date": "2026-08-12T18:50:09.229478547+03:00",
+  "data": {
+    "PROJECT_SOURCES": {
+      "location": {
+        "uri": "file:///home/alex/Documents/Cosylang/CMakeLists.txt",
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 4
+          },
+          "end": {
+            "line": 4,
+            "character": 19
+          }
+        }
+      },
+      "document_info": "defined variable\nfrom: /home/alex/Documents/Cosylang/CMakeLists.txt",
+      "is_function": false
+    }
+  }
+}

@@ -2,12 +2,13 @@
 
 #include <string_view>
 
-namespace Cosylang::Lexer
+namespace Cosylang::Lexer::Token
 {
 
 enum class TokenType
 {
     ID,
+    NUMBER,
     INTEGER,
     FLOAT,
     STRING,
@@ -58,13 +59,14 @@ enum class TokenType
     BIT_NOT, // ~
 
     IMPORT, // import
+    NAMESPACE, // namespace
 
     VAR, // var
     CONST, // const
 
     IF, // if
     ELSE, // else
-    ELSE_IF, // else if
+    ELIF, // elif
 
     MATCH, // match
 
@@ -79,13 +81,14 @@ enum class TokenType
 
     BODY, // keyword 'body'
 
-    TYPE, // type
+    TYPE, // keyword 'type'
 
     END_OF_FILE
 };
 
-struct Token
+class Token
 {
+public:
     std::string_view name;
     TokenType type = TokenType::END_OF_FILE;
 
@@ -94,7 +97,7 @@ struct Token
     size_t offset = 0;
     size_t length = name.length();
 
-    Token(std::string_view this_name, TokenType this_type, size_t this_line, size_t this_column, size_t this_offset) :
+    Token(TokenType this_type, std::string_view this_name, size_t this_line, size_t this_column, size_t this_offset) :
         name(this_name), type(this_type), line(this_line), column(this_column), offset(this_offset), length(this_name.length()) {}
 };
 
