@@ -84,6 +84,9 @@ struct Node
 
     Node* first_child = nullptr;
     Node* next_sibling = nullptr;
+
+    Node(NodeType this_type, const Lexer::Token::Token* this_token, Node* this_first_child = nullptr, Node* this_next_sibling = nullptr)
+        : type(this_type), token(this_token), first_child(this_first_child), next_sibling(this_next_sibling) {}
 };
 
 
