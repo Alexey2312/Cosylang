@@ -95,6 +95,13 @@ public:
         return allocate_new_block(aligned_size);
     }
 
+    template <typename T, typename... Args>
+    inline T* alloc(Args&&... args)
+    {
+        void* ptr = this->allocate(sizeof(T));
+        return ::new (ptr) T(std::forward<Args>(args)...);
+    }
+
     void clear() noexcept
     {
         Block* resetting_block = current_block;

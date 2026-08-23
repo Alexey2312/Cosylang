@@ -7,74 +7,38 @@ namespace Cosylang::Parser
 enum class NodeType
 {
     ID,
-    INTEGER,
-    FLOAT,
-    STRING,
+    LITERAL,
 
-    TRUE, // true
-    FALSE, // false
+    BINARY_OP,
+    UNARY_OP,
+    ASSIGN,
+    FUNCTION_CALL,
+    PARAMS,
+    INDEX,
+    DOT,
+    RANGE,
 
-    DOT, // .
-    COMMA,// ,
-    COLON, // :
-    SEMICOLON, // ;
-    RANGE, // ..
+    CODE_BLOCK,
+    VAR,
+    CONST,
 
-    ASSIGN, // =
-    PLUS_ASSIGN, // +=
-    MINUS_ASSIGN, // -=
-    MUL_ASSIGN, // *=
-    DIV_ASSIGN, // /=
+    IF,
+    ELIF,
+    ELSE,
+    WHILE,
+    FOR,
+    MATCH,
 
-    MUL, // *
-    DIV, // /
-    PLUS, // +
-    MINUS, // -
+    RETURN,
+    BREAK,
+    CONTINUE,
 
-    EQUALS, // ==
-    NOT_EQUALS, // !=
-    GREATER_OR_EQUAL, // >=
-    LESS_OR_EQUAL, // <=
-    GREATER, // >
-    LESS, // <
+    FUNC,
+    TYPE,
+    NAMESPACE,
+    IMPORT,
 
-    CODE_BLOCK, // { }
-    ARRAY_INDEX, // [ ]
-    PARENTHESIS, // ( )
-
-    AND, // && or 'and'
-    OR, // || or 'or'
-    NOT, // ! or 'not'
-
-    BIT_AND, // &
-    BIT_OR, // |
-    BIT_XOR, // ^
-    BIT_NOT, // ~
-
-    IMPORT, // import
-    NAMESPACE, // namespace
-
-    VAR, // var
-    CONST, // const
-
-    IF, // if
-    ELSE, // else
-    ELIF, // elif
-
-    MATCH, // match
-
-    WHILE, // while
-    FOR, // for
-    CONTINUE, // continue
-    BREAK, // break
-
-    FUNC, // func
-    RETURN, // return
-    ARROW, // =>
-
-    BODY, // keyword 'body'
-
-    TYPE, // keyword 'type'
+    PROGRAM,
 };
 
 struct Node
