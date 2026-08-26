@@ -14,6 +14,15 @@ const Lexer::Token::Token* Parser::peek()
     return &tokens[cursor];
 }
 
+const Lexer::Token::Token* Parser::previousToken()
+{
+    if (cursor >= tokens.size() && cursor - 1 > 0)
+    {
+        return &tokens[cursor - 1];
+    }
+    return &tokens[0];
+}
+
 const Lexer::Token::Token* Parser::consume(Lexer::Token::TokenType type)
 {
     const Lexer::Token::Token* token = peek();
@@ -27,6 +36,24 @@ const Lexer::Token::Token* Parser::consume(Lexer::Token::TokenType type)
     }
     else
     {
+        return nullptr;
+    }
+}
+
+const Lexer::Token::Token* Parser::consume(Lexer::Token::TokenType type, std::string error)
+{
+    const Lexer::Token::Token* token = peek();
+    if (token && token->type == type)
+    {
+        if (cursor < tokens.size())
+        {
+            cursor++;
+        }
+        return token;
+    }
+    else
+    {
+        std::cerr << error << "\n";
         return nullptr;
     }
 }
@@ -196,6 +223,135 @@ inline int Parser::getInfixBindingPower(Lexer::Token::TokenType type)
         default:
             return -1;
     }
+}
+
+Node* Parser::parseStatement()
+{
+    const Lexer::Token::Token* token = peek();
+    switch (token->type)
+    {
+        case Lexer::Token::TokenType::VAR:
+        {
+            return parseVariableDeclaration();
+        }
+        case Lexer::Token::TokenType::CONST:
+        {
+            return parseConstanteDeclaration();
+        }
+        default:
+        {
+            return parseExpression(0);
+        }
+    }
+}
+
+Node* Parser::parseVariableDeclaration()
+{
+    const Lexer::Token::Token* var_token = consume(Lexer::Token::TokenType::VAR);
+    if (!var_token)
+    {
+        std::cerr << "Expected 'var' keyword in variable declaration\n";
+        return nullptr;
+    }
+
+    Node* var_keyword = arena.alloc<Node>(NodeType::VAR, var_token);
+
+    const Lexer::Token::Token* id_token = consume(Lexer::Token::TokenType::ID);
+    if (!id_token)
+    {
+        std::cerr << "Expected variable name\n";
+        return nullptr;
+    }
+
+    Node* variable_name = arena.alloc<Node>(NodeType::ID, id_token);
+    Node* left_assign_operand = variable_name;
+
+    if (peek()->type == Lexer::Token::TokenType::COLON)
+    {
+        const Lexer::Token::Token* colon_token = consume();
+
+        const Lexer::Token::Token* type_token = consume(Lexer::Token::TokenType::ID);
+        if (!type_token)
+        {
+            std::cerr << "Expected type after ':'\n";
+            return nullptr;
+        }
+
+        variable_name->next_sibling = arena.alloc<Node>(NodeType::ID, type_token);
+        Node* colon = arena.alloc<Node>(NodeType::COLON, colon_token, variable_name);
+        left_assign_operand = colon;
+    }
+
+    if (peek()->type == Lexer::Token::TokenType::ASSIGN)
+    {
+        const Lexer::Token::Token* assign_token = consume();
+
+        Node* rhs = parseExpression(0);
+        left_assign_operand->next_sibling = rhs;
+        Node* assign = arena.alloc<Node>(NodeType::ASSIGN, assign_token, left_assign_operand);
+
+        var_keyword->first_child = assign;
+        return var_keyword;
+    }
+    var_keyword->first_child = left_assign_operand;
+    return var_keyword;
+}
+
+Node* Parser::parseConstanteDeclaration()
+{
+    const Lexer::Token::Token* const_token = consume(Lexer::Token::TokenType::CONST);
+    if (!const_token)
+    {
+        std::cerr << "Expected 'const' keyword in variable declaration\n";
+        return nullptr;
+    }
+
+    Node* const_keyword = arena.alloc<Node>(NodeType::CONST, const_token);
+
+    const Lexer::Token::Token* id_token = consume(Lexer::Token::TokenType::ID);
+    if (!id_token)
+    {
+        std::cerr << "Expected variable name\n";
+        return nullptr;
+    }
+
+    Node* const_name = arena.alloc<Node>(NodeType::ID, id_token);
+    Node* left_assign_operand = const_name;
+
+    if (peek()->type == Lexer::Token::TokenType::COLON)
+    {
+        const Lexer::Token::Token* colon_token = consume();
+
+        const Lexer::Token::Token* type_token = consume(Lexer::Token::TokenType::ID);
+        if (!type_token)
+        {
+            std::cerr << "Expected type after ':'\n";
+            return nullptr;
+        }
+
+        const_name->next_sibling = arena.alloc<Node>(NodeType::ID, type_token);
+        Node* colon = arena.alloc<Node>(NodeType::COLON, colon_token, const_name);
+        left_assign_operand = colon;
+    }
+
+    if (peek()->type == Lexer::Token::TokenType::ASSIGN)
+    {
+        const Lexer::Token::Token* assign_token = consume();
+
+        Node* rhs = parseExpression(0);
+        left_assign_operand->next_sibling = rhs;
+        Node* assign = arena.alloc<Node>(NodeType::ASSIGN, assign_token, left_assign_operand);
+
+        const_keyword->first_child = assign;
+        return const_keyword;
+    }
+    else
+    {
+        std::cerr << "Constant must be initialized \n";
+        return nullptr;
+    }
+    const_keyword->first_child = left_assign_operand;
+    return const_keyword;
 }
 
 } // namespace Cosylang::Parser

@@ -11,7 +11,8 @@ set(PROJECT_SOURCES
 
     tests/utills-tests/arena-allocator/arena-alloc-test.cpp
     tests/lexer-tests/lexer-tests.cpp
-    tests/parser-tests/parser-tests.cpp
+    tests/parser-tests/parse-expression-tests.cpp
+    tests/parser-tests/parse-keyword-tests.cpp
 
 )
 

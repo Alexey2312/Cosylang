@@ -18,10 +18,15 @@ private:
     inline int getInfixBindingPower(Lexer::Token::TokenType type);
 
     inline const Lexer::Token::Token* peek();
+    inline const Lexer::Token::Token* previousToken();
     inline const Lexer::Token::Token* consume(Lexer::Token::TokenType type);
+    inline const Lexer::Token::Token* consume(Lexer::Token::TokenType type, std::string error);
     inline const Lexer::Token::Token* consume();
 
+    Node* parseVariableDeclaration();
+    Node* parseConstanteDeclaration();
 public:
+    Node* parseStatement();
     Node* parseExpression(int left_binding_power);
     const Node* parse();
 

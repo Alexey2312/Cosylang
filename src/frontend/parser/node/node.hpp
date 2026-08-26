@@ -16,6 +16,7 @@ enum class NodeType
     PARAMS,
     INDEX,
     DOT,
+    COLON,
     RANGE,
 
     CODE_BLOCK,
