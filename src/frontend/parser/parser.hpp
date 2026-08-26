@@ -24,7 +24,12 @@ private:
     inline const Lexer::Token::Token* consume();
 
     Node* parseVariableDeclaration();
-    Node* parseConstanteDeclaration();
+    Node* parseConstantDeclaration();
+    Node* parseFunctionDeclaration();
+    Node* parseParams();
+    Node* parseParam();
+    Node* parseCodeBlock();
+    Node* parseReturn();
 public:
     Node* parseStatement();
     Node* parseExpression(int left_binding_power);

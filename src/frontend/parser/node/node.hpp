@@ -50,6 +50,31 @@ struct Node
     Node* first_child = nullptr;
     Node* next_sibling = nullptr;
 
+    void addChild(Node* child)
+    {
+        if (first_child)
+        {
+            if (!first_child->next_sibling)
+            {
+                first_child->next_sibling = child;
+                return;
+            }
+            Node* last_child = first_child->next_sibling;
+            while (last_child->next_sibling)
+            {
+                last_child = last_child->next_sibling;
+                continue;
+            }
+            last_child->next_sibling = child;
+            return;
+        }
+        else
+        {
+            first_child = child;
+            return;
+        }
+    }
+
     Node(NodeType this_type, const Lexer::Token::Token* this_token, Node* this_first_child = nullptr, Node* this_next_sibling = nullptr)
         : type(this_type), token(this_token), first_child(this_first_child), next_sibling(this_next_sibling) {}
 };

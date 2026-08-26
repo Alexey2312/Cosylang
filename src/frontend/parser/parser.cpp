@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "node/node.hpp"
 #include <iostream>
 #include <string>
 
@@ -236,7 +237,19 @@ Node* Parser::parseStatement()
         }
         case Lexer::Token::TokenType::CONST:
         {
-            return parseConstanteDeclaration();
+            return parseConstantDeclaration();
+        }
+        case Lexer::Token::TokenType::FUNC:
+        {
+            return parseFunctionDeclaration();
+        }
+        case Lexer::Token::TokenType::LEFT_CURLY_BRACKET:
+        {
+            return parseCodeBlock();
+        }
+        case Lexer::Token::TokenType::RETURN:
+        {
+            return parseReturn();
         }
         default:
         {
@@ -297,12 +310,12 @@ Node* Parser::parseVariableDeclaration()
     return var_keyword;
 }
 
-Node* Parser::parseConstanteDeclaration()
+Node* Parser::parseConstantDeclaration()
 {
     const Lexer::Token::Token* const_token = consume(Lexer::Token::TokenType::CONST);
     if (!const_token)
     {
-        std::cerr << "Expected 'const' keyword in variable declaration\n";
+        std::cerr << "Expected 'const' keyword in constant declaration\n";
         return nullptr;
     }
 
@@ -352,6 +365,174 @@ Node* Parser::parseConstanteDeclaration()
     }
     const_keyword->first_child = left_assign_operand;
     return const_keyword;
+}
+
+Node* Parser::parseFunctionDeclaration()
+{
+    const Lexer::Token::Token* func_token = consume(Lexer::Token::TokenType::FUNC);
+    if (!func_token)
+    {
+        return nullptr;
+    }
+
+    Node* func_node = arena.alloc<Node>(NodeType::FUNC, func_token);
+
+    const Lexer::Token::Token* name_token = consume(Lexer::Token::TokenType::ID);
+    if (!name_token)
+    {
+        std::cerr << "Expected function name\n";
+        return nullptr;
+    }
+    Node* name_node = arena.alloc<Node>(NodeType::ID, name_token);
+    func_node->first_child = name_node;
+
+    Node* params_node = parseParams();
+    name_node->next_sibling = params_node;
+
+    Node* last_header_node = params_node;
+    if (peek()->type == Lexer::Token::TokenType::COLON)
+    {
+        const Lexer::Token::Token* colon_token = consume();
+        const Lexer::Token::Token* type_token = consume(Lexer::Token::TokenType::ID);
+
+        Node* return_type = arena.alloc<Node>(NodeType::ID, type_token);
+        Node* colon_node = arena.alloc<Node>(NodeType::COLON, colon_token, return_type);
+
+        params_node->next_sibling = colon_node;
+        last_header_node = colon_node;
+    }
+
+    Node* body_node = parseCodeBlock();
+    last_header_node->next_sibling = body_node;
+
+    return func_node;
+}
+
+Node* Parser::parseParams()
+{
+    if (peek()->type != Lexer::Token::TokenType::LEFT_BRACKET)
+    {
+        std::cerr << "Expected '(' in params list\n";
+        return nullptr;
+    }
+
+    Node* params_node = arena.alloc<Node>(NodeType::PARAMS, consume(Lexer::Token::TokenType::LEFT_BRACKET));
+
+    Node* first_child = nullptr;
+    Node* last_child = nullptr;
+
+    while (peek()->type != Lexer::Token::TokenType::RIGHT_BRACKET && peek()->type != Lexer::Token::TokenType::END_OF_FILE)
+    {
+        Node* param = parseParam();
+
+        if (!first_child)
+        {
+            first_child = param;
+            params_node->first_child = first_child;
+        }
+        else
+        {
+            last_child->next_sibling = param;
+        }
+        last_child = param;
+
+        if (peek()->type == Lexer::Token::TokenType::COMMA)
+        {
+            consume();
+        }
+    }
+
+    consume(Lexer::Token::TokenType::RIGHT_BRACKET, "Expected ')' at end of params list");
+    return params_node;
+}
+
+Node* Parser::parseParam()
+{
+    const Lexer::Token::Token* param_name_token = consume(Lexer::Token::TokenType::ID);
+    if (!param_name_token)
+    {
+        std::cerr << "Expected param name\n";
+        return nullptr;
+    }
+
+    Node* param_name = arena.alloc<Node>(NodeType::ID, param_name_token);
+    Node* out_node = param_name;
+
+    if (peek()->type == Lexer::Token::TokenType::COLON)
+    {
+        const Lexer::Token::Token* colon_token = consume();
+        const Lexer::Token::Token* type_token = consume(Lexer::Token::TokenType::ID);
+
+        param_name->next_sibling = arena.alloc<Node>(NodeType::ID, type_token);
+        out_node = arena.alloc<Node>(NodeType::COLON, colon_token, param_name);
+    }
+
+    if (peek()->type == Lexer::Token::TokenType::ASSIGN)
+    {
+        const Lexer::Token::Token* assign_token = consume();
+        Node* default_value = parseExpression(0);
+
+        out_node->next_sibling = default_value;
+        out_node = arena.alloc<Node>(NodeType::ASSIGN, assign_token, out_node);
+    }
+
+    return out_node;
+}
+
+Node* Parser::parseReturn()
+{
+    const Lexer::Token::Token* return_token = consume(Lexer::Token::TokenType::RETURN);
+    if (!return_token)
+    {
+        return nullptr;
+    }
+
+    Node* return_node = arena.alloc<Node>(NodeType::RETURN, return_token);
+
+    const Lexer::Token::Token* next_token = peek();
+
+    bool is_same_line = (next_token->line == return_token->line);
+
+    bool is_valid_expr_start = (next_token->type != Lexer::Token::TokenType::RIGHT_CURLY_BRACKET) &&
+                               (next_token->type != Lexer::Token::TokenType::SEMICOLON) &&
+                               (next_token->type != Lexer::Token::TokenType::END_OF_FILE);
+
+    if (is_same_line && is_valid_expr_start)
+    {
+        return_node->first_child = parseExpression(0);
+    }
+
+    return return_node;
+}
+
+Node* Parser::parseCodeBlock()
+{
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected '{' in code block \n";
+        return nullptr;
+    }
+    Node* block = arena.alloc<Node>(NodeType::CODE_BLOCK, consume(Lexer::Token::TokenType::LEFT_CURLY_BRACKET));
+
+    Node* first_child = nullptr;
+    Node* last_child = nullptr;
+    while (peek()->type != Lexer::Token::TokenType::RIGHT_CURLY_BRACKET)
+    {
+        Node* child = parseStatement();
+
+        if (!first_child)
+        {
+            first_child = child;
+            block->first_child = first_child;
+        }
+        else
+        {
+            last_child->next_sibling = child;
+        }
+        last_child = child;
+    }
+    consume(Lexer::Token::TokenType::RIGHT_CURLY_BRACKET, "Expected '}' at end of code block");
+    return block;
 }
 
 } // namespace Cosylang::Parser
