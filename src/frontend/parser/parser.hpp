@@ -36,6 +36,9 @@ private:
     Node* parseElseStatement();
 
     Node* parseWhileStatement();
+
+    Node* parseBodyDeclaration();
+    Node* parseTypeDeclaration();
 public:
     Node* parseStatement();
     Node* parseExpression(int left_binding_power);

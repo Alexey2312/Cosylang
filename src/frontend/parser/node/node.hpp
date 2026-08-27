@@ -39,6 +39,8 @@ enum class NodeType
     NAMESPACE,
     IMPORT,
 
+    BODY,
+
     PROGRAM,
 };
 

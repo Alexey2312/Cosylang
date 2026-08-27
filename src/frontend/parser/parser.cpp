@@ -285,6 +285,14 @@ Node* Parser::parseStatement()
         {
             return arena.alloc<Node>(NodeType::BREAK, consume());
         }
+        case Lexer::Token::TokenType::TYPE:
+        {
+            return parseTypeDeclaration();
+        }
+        case Lexer::Token::TokenType::BODY:
+        {
+            return parseBodyDeclaration();
+        }
         default:
         {
             return parseExpression(0);
@@ -666,6 +674,57 @@ Node* Parser::parseWhileStatement()
     Node* while_statement = arena.alloc<Node>(NodeType::WHILE, while_token, condition);
 
     return while_statement;
+}
+
+Node* Parser::parseBodyDeclaration()
+{
+    if (peek()->type != Lexer::Token::TokenType::BODY)
+    {
+        return nullptr;
+    }
+
+    Node* body_keyword = arena.alloc<Node>(NodeType::BODY, consume());
+    if (peek()->type != Lexer::Token::TokenType::ID)
+    {
+        std::cerr << "Expected body name \n";
+        return nullptr;
+    }
+    body_keyword->first_child = arena.alloc<Node>(NodeType::ID, consume());
+
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected code block after body name\n";
+        return nullptr;
+    }
+
+    body_keyword->addChild(parseCodeBlock());
+    return body_keyword;
+}
+
+Node* Parser::parseTypeDeclaration()
+{
+    consume(Lexer::Token::TokenType::TYPE);
+
+    const Lexer::Token::Token* name_token = consume(Lexer::Token::TokenType::ID);
+    Node* type_node = arena.alloc<Node>(NodeType::TYPE, name_token);
+
+    consume(Lexer::Token::TokenType::ASSIGN);
+
+    Node* first_variant = arena.alloc<Node>(NodeType::ID, consume(Lexer::Token::TokenType::ID));
+    Node* last_variant = first_variant;
+
+    while (peek()->type == Lexer::Token::TokenType::BIT_OR)
+    {
+        consume();
+        const Lexer::Token::Token* variant_token = consume(Lexer::Token::TokenType::ID);
+
+        Node* variant_node = arena.alloc<Node>(NodeType::ID, variant_token);
+        last_variant->next_sibling = variant_node;
+        last_variant = variant_node;
+    }
+
+    type_node->first_child = first_variant;
+    return type_node;
 }
 
 Node* Parser::parseCodeBlock()

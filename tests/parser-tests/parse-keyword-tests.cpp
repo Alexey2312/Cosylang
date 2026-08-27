@@ -338,3 +338,63 @@ UNIT_TEST(ParseWhileStatementTest)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(ParseTypeDeclarationTest)
+{
+    Cosylang::Lexer::Lexer lexer("type A = B | C");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::TYPE &&
+                    node->token->name == "A" &&
+
+                    node->first_child &&
+                    node->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->token->name == "B" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->next_sibling->token->name == "C";
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseBodyDeclarationTest)
+{
+    Cosylang::Lexer::Lexer lexer("body Point { var x: int var y: int }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::BODY &&
+                    node->token->type == Cosylang::Lexer::Token::TokenType::BODY &&
+
+                    node->first_child &&
+                    node->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->token->name == "Point" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
+                    node->first_child->next_sibling->token->type == Cosylang::Lexer::Token::TokenType::LEFT_CURLY_BRACKET &&
+
+                    node->first_child->next_sibling->first_child &&
+                    node->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::VAR &&
+
+                    node->first_child->next_sibling->first_child->next_sibling &&
+                    node->first_child->next_sibling->first_child->next_sibling->type == Cosylang::Parser::NodeType::VAR;
+
+    Silteli::expect(is_valid);
+}
