@@ -85,13 +85,15 @@ Node* Parser::parseExpression(int left_binding_power)
         case Lexer::Token::TokenType::INTEGER:
         case Lexer::Token::TokenType::FLOAT:
         case Lexer::Token::TokenType::STRING:
+        case Lexer::Token::TokenType::TRUE:
+        case Lexer::Token::TokenType::FALSE:
         {
             lhs = arena.alloc<Node>(NodeType::LITERAL, token);
             break;
         }
         case Lexer::Token::TokenType::ID:
         {
-            if (peek()-> type == Lexer::Token::TokenType::LEFT_BRACKET)
+            if (peek()->type == Lexer::Token::TokenType::LEFT_BRACKET)
             {
                 consume();
 
@@ -130,13 +132,13 @@ Node* Parser::parseExpression(int left_binding_power)
 
                 lhs = arena.alloc<Node>(NodeType::FUNCTION_CALL, token, first_arg, nullptr);
             }
-            else if (peek()-> type == Lexer::Token::TokenType::LEFT_SQUARE_BRACKET)
+            else if (peek()->type == Lexer::Token::TokenType::LEFT_SQUARE_BRACKET)
             {
                 lhs = arena.alloc<Node>(NodeType::ID, token);
                 consume();
                 lhs->next_sibling = parseExpression(0);
                 lhs = arena.alloc<Node>(NodeType::INDEX, token, lhs);
-                if (peek()-> type != Lexer::Token::TokenType::RIGHT_SQUARE_BRACKET)
+                if (peek()->type != Lexer::Token::TokenType::RIGHT_SQUARE_BRACKET)
                 {
                     std::cerr << "Expected ']' after array index, but got: " << peek()->name << " \n";
                 }
@@ -160,14 +162,16 @@ Node* Parser::parseExpression(int left_binding_power)
             break;
         }
         case Lexer::Token::TokenType::MINUS:
+        case Lexer::Token::TokenType::NOT:
+        case Lexer::Token::TokenType::BIT_NOT:
         {
-            constexpr int UNARY_BINDING_POWER = 40;
+            constexpr int UNARY_BINDING_POWER = 60;
             Node* operand = parseExpression(UNARY_BINDING_POWER);
             lhs = arena.alloc<Node>(NodeType::UNARY_OP, token, operand, nullptr);
             break;
         }
         default:
-            std::cerr << "Unexpected token: " + std::string(peek()->name) + "\n";
+            std::cerr << "Unexpected token: " + std::string(token->name) + "\n";
     }
 
     for (;;)
@@ -179,6 +183,7 @@ Node* Parser::parseExpression(int left_binding_power)
         }
 
         if (next_token->type == Lexer::Token::TokenType::RIGHT_BRACKET ||
+            next_token->type == Lexer::Token::TokenType::RIGHT_SQUARE_BRACKET ||
             next_token->type == Lexer::Token::TokenType::SEMICOLON ||
             next_token->type == Lexer::Token::TokenType::COMMA)
         {
@@ -216,11 +221,24 @@ inline int Parser::getInfixBindingPower(Lexer::Token::TokenType type)
 {
     switch (type)
     {
-        case Lexer::Token::TokenType::EQUALS: return 10;
+        case Lexer::Token::TokenType::ASSIGN: return 5;
+
+        case Lexer::Token::TokenType::OR: return 10;
+
+        case Lexer::Token::TokenType::AND: return 15;
+
+        case Lexer::Token::TokenType::EQUALS:
+        case Lexer::Token::TokenType::NOT_EQUALS:
+        case Lexer::Token::TokenType::LESS:
+        case Lexer::Token::TokenType::GREATER:
+        case Lexer::Token::TokenType::LESS_OR_EQUAL:
+        case Lexer::Token::TokenType::GREATER_OR_EQUAL: return 20;
+
         case Lexer::Token::TokenType::PLUS:
-        case Lexer::Token::TokenType::MINUS: return 20;
+        case Lexer::Token::TokenType::MINUS: return 30;
+
         case Lexer::Token::TokenType::MUL:
-        case Lexer::Token::TokenType::DIV: return 30;
+        case Lexer::Token::TokenType::DIV: return 40;
         default:
             return -1;
     }
@@ -250,6 +268,10 @@ Node* Parser::parseStatement()
         case Lexer::Token::TokenType::RETURN:
         {
             return parseReturn();
+        }
+        case Lexer::Token::TokenType::IF:
+        {
+            return parseIfStatement();
         }
         default:
         {
@@ -503,6 +525,106 @@ Node* Parser::parseReturn()
     }
 
     return return_node;
+}
+
+Node* Parser::parseIfStatement()
+{
+    const Lexer::Token::Token* if_token = consume();
+    if (!if_token)
+    {
+        return nullptr;
+    }
+
+    Node* condition = parseExpression(0);
+    if (!condition)
+    {
+        std::cerr << "Expected condition after 'if'\n";
+        return nullptr;
+    }
+
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected code block after 'if'\n";
+        return nullptr;
+    }
+    Node* code_block = parseCodeBlock();
+
+    condition->next_sibling = code_block;
+
+    Node* if_statement = arena.alloc<Node>(NodeType::ELIF, if_token, condition);
+    Node* elif_statements = parseElifStatement();
+    Node* else_statement = parseElseStatement();
+
+    if (elif_statements)
+    {
+        if_statement->addChild(elif_statements);
+    }
+    if (else_statement)
+    {
+        if_statement->addChild(else_statement);
+    }
+
+    return if_statement;
+}
+
+Node* Parser::parseElifStatement()
+{
+    Node* first_statement = nullptr;
+    Node* last_statement = nullptr;
+    while (peek()->type == Lexer::Token::TokenType::ELIF)
+    {
+        const Lexer::Token::Token* elif_token = consume();
+        if (!elif_token)
+        {
+            return nullptr;
+        }
+
+        Node* condition = parseExpression(0);
+        if (!condition)
+        {
+            std::cerr << "Expected condition after 'elif'\n";
+            return nullptr;
+        }
+
+        if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+        {
+            std::cerr << "Expected code block after 'elif'\n";
+            return nullptr;
+        }
+        Node* code_block = parseCodeBlock();
+
+        condition->next_sibling = code_block;
+
+        if (!first_statement)
+        {
+            first_statement = arena.alloc<Node>(NodeType::ELIF, elif_token, condition);
+            last_statement = first_statement;
+        }
+        else
+        {
+            last_statement->next_sibling = arena.alloc<Node>(NodeType::ELIF, elif_token, condition);
+            last_statement = last_statement->next_sibling;
+        }
+    }
+    return first_statement;
+}
+
+Node* Parser::parseElseStatement()
+{
+    if (peek()->type != Lexer::Token::TokenType::ELSE)
+    {
+        return nullptr;
+    }
+    Node* else_statement = arena.alloc<Node>(NodeType::ELSE, consume());
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected code block after 'else'\n";
+        return nullptr;
+    }
+    Node* code_block = parseCodeBlock();
+    else_statement->first_child = code_block;
+
+    return else_statement;
 }
 
 Node* Parser::parseCodeBlock()
