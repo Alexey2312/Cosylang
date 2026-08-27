@@ -30,6 +30,10 @@ private:
     Node* parseParam();
     Node* parseCodeBlock();
     Node* parseReturn();
+
+    Node* parseIfStatement();
+    Node* parseElifStatement();
+    Node* parseElseStatement();
 public:
     Node* parseStatement();
     Node* parseExpression(int left_binding_power);
