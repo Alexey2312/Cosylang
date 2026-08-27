@@ -34,6 +34,8 @@ private:
     Node* parseIfStatement();
     Node* parseElifStatement();
     Node* parseElseStatement();
+
+    Node* parseWhileStatement();
 public:
     Node* parseStatement();
     Node* parseExpression(int left_binding_power);

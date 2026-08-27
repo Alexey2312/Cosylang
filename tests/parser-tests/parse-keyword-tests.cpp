@@ -270,7 +270,6 @@ UNIT_TEST(ParseReturnNewlineTest)
     Silteli::expect(is_valid);
 }
 
-
 UNIT_TEST(ParseIfElifElseStatementTest)
 {
     Cosylang::Lexer::Lexer lexer("if a { var x = 1 } elif b { var y = 2 } else { var z = 3 }");
@@ -311,6 +310,31 @@ UNIT_TEST(ParseIfElifElseStatementTest)
                     node->first_child->next_sibling->next_sibling->next_sibling->first_child &&
                     node->first_child->next_sibling->next_sibling->next_sibling->first_child->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
                     node->first_child->next_sibling->next_sibling->next_sibling->first_child->first_child->first_child->first_child->token->name == "z";
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseWhileStatementTest)
+{
+    Cosylang::Lexer::Lexer lexer("while a { var x = 1 }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(512);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->token->type == Cosylang::Lexer::Token::TokenType::WHILE &&
+
+                    node->first_child &&
+                    node->first_child->token->name == "a" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
+                    node->first_child->next_sibling->first_child->first_child->first_child->token->name == "x";
 
     Silteli::expect(is_valid);
 }

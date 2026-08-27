@@ -273,6 +273,18 @@ Node* Parser::parseStatement()
         {
             return parseIfStatement();
         }
+        case Lexer::Token::TokenType::WHILE:
+        {
+            return parseWhileStatement();
+        }
+        case Lexer::Token::TokenType::CONTINUE:
+        {
+            return arena.alloc<Node>(NodeType::CONTINUE, consume());
+        }
+        case Lexer::Token::TokenType::BREAK:
+        {
+            return arena.alloc<Node>(NodeType::BREAK, consume());
+        }
         default:
         {
             return parseExpression(0);
@@ -551,7 +563,7 @@ Node* Parser::parseIfStatement()
 
     condition->next_sibling = code_block;
 
-    Node* if_statement = arena.alloc<Node>(NodeType::ELIF, if_token, condition);
+    Node* if_statement = arena.alloc<Node>(NodeType::IF, if_token, condition);
     Node* elif_statements = parseElifStatement();
     Node* else_statement = parseElseStatement();
 
@@ -625,6 +637,35 @@ Node* Parser::parseElseStatement()
     else_statement->first_child = code_block;
 
     return else_statement;
+}
+
+Node* Parser::parseWhileStatement()
+{
+    const Lexer::Token::Token* while_token = consume(Lexer::Token::TokenType::WHILE);
+    if (!while_token)
+    {
+        return nullptr;
+    }
+
+    Node* condition = parseExpression(0);
+    if (!condition)
+    {
+        std::cerr << "Expected condition after 'while'\n";
+        return nullptr;
+    }
+
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected code block after 'while'\n";
+        return nullptr;
+    }
+    Node* code_block = parseCodeBlock();
+
+    condition->next_sibling = code_block;
+
+    Node* while_statement = arena.alloc<Node>(NodeType::WHILE, while_token, condition);
+
+    return while_statement;
 }
 
 Node* Parser::parseCodeBlock()
