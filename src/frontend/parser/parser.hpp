@@ -36,6 +36,7 @@ private:
     Node* parseElseStatement();
 
     Node* parseWhileStatement();
+    Node* parseForStatement();
 
     Node* parseBodyDeclaration();
     Node* parseTypeDeclaration();

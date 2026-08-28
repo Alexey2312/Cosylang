@@ -199,6 +199,15 @@ Node* Parser::parseExpression(int left_binding_power)
             lhs = arena.alloc<Node>(NodeType::ASSIGN, next_token, lhs);
             break;
         }
+        if (next_token->type == Lexer::Token::TokenType::RANGE)
+        {
+            consume();
+
+            Node* rhs = parseExpression(0);
+            lhs->next_sibling = rhs;
+            lhs = arena.alloc<Node>(NodeType::RANGE, next_token, lhs);
+            break;
+        }
 
         int right_binding_power = getInfixBindingPower(next_token->type);
 
@@ -276,6 +285,10 @@ Node* Parser::parseStatement()
         case Lexer::Token::TokenType::WHILE:
         {
             return parseWhileStatement();
+        }
+        case Lexer::Token::TokenType::FOR:
+        {
+            return parseForStatement();
         }
         case Lexer::Token::TokenType::CONTINUE:
         {
@@ -726,6 +739,58 @@ Node* Parser::parseTypeDeclaration()
     type_node->first_child = first_variant;
     return type_node;
 }
+
+Node* Parser::parseForStatement()
+{
+    const Lexer::Token::Token* for_token = consume(Lexer::Token::TokenType::FOR);
+    if (!for_token)
+    {
+        return nullptr;
+    }
+
+    if (peek()->type == Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        Node* code_block = parseCodeBlock();
+        return arena.alloc<Node>(NodeType::FOR, for_token, code_block);
+    }
+
+    const Lexer::Token::Token* id_token = consume(Lexer::Token::TokenType::ID);
+    if (!id_token)
+    {
+        std::cerr << "Expected variable name after 'for'\n";
+        return nullptr;
+    }
+    Node* first_id_node = arena.alloc<Node>(NodeType::ID, id_token);
+
+    const Lexer::Token::Token* colon_token = consume(Lexer::Token::TokenType::COLON);
+    if (!colon_token)
+    {
+        std::cerr << "Expected ':' after variable name in for loop\n";
+        return nullptr;
+    }
+
+    Node* iterable = parseExpression(0);
+    if (!iterable)
+    {
+        std::cerr << "Expected expression after ':' in for loop\n";
+        return nullptr;
+    }
+
+    first_id_node->next_sibling = iterable;
+    Node* colon_node = arena.alloc<Node>(NodeType::COLON, colon_token, first_id_node);
+
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected '{' code block in for loop\n";
+        return nullptr;
+    }
+
+    Node* code_block = parseCodeBlock();
+    colon_node->next_sibling = code_block;
+
+    return arena.alloc<Node>(NodeType::FOR, for_token, colon_node);
+}
+
 
 Node* Parser::parseCodeBlock()
 {

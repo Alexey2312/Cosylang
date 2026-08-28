@@ -352,6 +352,11 @@ inline Token::Token Lexer::processNumber()
 
         if (*current == '.')
         {
+            if (current[1] == '.')
+            {
+                end = current;
+                break;
+            }
             dots_count++;
             if (dots_count > 1)
             {

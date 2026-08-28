@@ -398,3 +398,128 @@ UNIT_TEST(ParseBodyDeclarationTest)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(ParseInfiniteForLoopTest)
+{
+    Cosylang::Lexer::Lexer lexer("for { var x = 1 }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::FOR &&
+                    node->token->type == Cosylang::Lexer::Token::TokenType::FOR &&
+
+                    node->first_child &&
+                    node->first_child->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
+
+                    node->first_child->first_child &&
+                    node->first_child->first_child->type == Cosylang::Parser::NodeType::VAR;
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseForCollectionTest)
+{
+    Cosylang::Lexer::Lexer lexer("for item : array { var x = 1 }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::FOR &&
+
+                    node->first_child &&
+                    node->first_child->type == Cosylang::Parser::NodeType::COLON &&
+
+                    node->first_child->first_child &&
+                    node->first_child->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->first_child->token->name == "item" &&
+
+                    node->first_child->first_child->next_sibling &&
+                    node->first_child->first_child->next_sibling->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->first_child->next_sibling->token->name == "array" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
+                    node->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::VAR;
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseForRangeTest)
+{
+    Cosylang::Lexer::Lexer lexer("for i : 0..10 { var x = 1 }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::FOR &&
+
+                    node->first_child &&
+                    node->first_child->type == Cosylang::Parser::NodeType::COLON &&
+
+                    node->first_child->first_child &&
+                    node->first_child->first_child->token->name == "i" &&
+
+                    node->first_child->first_child->next_sibling &&
+                    node->first_child->first_child->next_sibling->token->type == Cosylang::Lexer::Token::TokenType::RANGE &&
+
+                    node->first_child->first_child->next_sibling->first_child &&
+                    node->first_child->first_child->next_sibling->first_child->token->name == "0" &&
+
+                    node->first_child->first_child->next_sibling->first_child->next_sibling &&
+                    node->first_child->first_child->next_sibling->first_child->next_sibling->token->name == "10" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK;
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseForFunctionCallTest)
+{
+    Cosylang::Lexer::Lexer lexer("for item : get_items() { var x = 1 }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::FOR &&
+
+                    node->first_child &&
+                    node->first_child->type == Cosylang::Parser::NodeType::COLON &&
+
+                    node->first_child->first_child &&
+                    node->first_child->first_child->token->name == "item" &&
+
+                    node->first_child->first_child->next_sibling &&
+                    node->first_child->first_child->next_sibling->type == Cosylang::Parser::NodeType::FUNCTION_CALL &&
+                    node->first_child->first_child->next_sibling->token->name == "get_items" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK;
+
+    Silteli::expect(is_valid);
+}
