@@ -523,3 +523,33 @@ UNIT_TEST(ParseForFunctionCallTest)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(ParseMatchTest)
+{
+    Cosylang::Lexer::Lexer lexer("match x { a => var y = 1 }");
+
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+
+    Cosylang::Parser::Parser parser(tokens, arena);
+
+    Cosylang::Parser::Node* node = parser.parseStatement();
+
+    bool is_valid = node &&
+                    node->type == Cosylang::Parser::NodeType::MATCH &&
+
+                    node->first_child &&
+                    node->first_child->token->name == "x" &&
+
+                    node->first_child->next_sibling &&
+                    node->first_child->next_sibling->type == Cosylang::Parser::NodeType::ARROW &&
+
+                    node->first_child->next_sibling->first_child &&
+                    node->first_child->next_sibling->first_child->token->name == "a" &&
+
+                    node->first_child->next_sibling->first_child->next_sibling &&
+                    node->first_child->next_sibling->first_child->next_sibling->type == Cosylang::Parser::NodeType::VAR;
+
+    Silteli::expect(is_valid);
+}

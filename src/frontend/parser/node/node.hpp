@@ -30,6 +30,10 @@ enum class NodeType
     FOR,
     MATCH,
 
+    DEFAULT,
+
+    ARROW,
+
     RETURN,
     BREAK,
     CONTINUE,

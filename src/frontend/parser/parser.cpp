@@ -91,6 +91,11 @@ Node* Parser::parseExpression(int left_binding_power)
             lhs = arena.alloc<Node>(NodeType::LITERAL, token);
             break;
         }
+        case Lexer::Token::TokenType::DEFAULT:
+        {
+            lhs = arena.alloc<Node>(NodeType::DEFAULT, token);
+            break;
+        }
         case Lexer::Token::TokenType::ID:
         {
             if (peek()->type == Lexer::Token::TokenType::LEFT_BRACKET)
@@ -305,6 +310,10 @@ Node* Parser::parseStatement()
         case Lexer::Token::TokenType::BODY:
         {
             return parseBodyDeclaration();
+        }
+        case Lexer::Token::TokenType::MATCH:
+        {
+            return parseMatchStatement();
         }
         default:
         {
@@ -791,6 +800,58 @@ Node* Parser::parseForStatement()
     return arena.alloc<Node>(NodeType::FOR, for_token, colon_node);
 }
 
+Node* Parser::parseMatchStatement()
+{
+
+    const Lexer::Token::Token* match_token = consume(Lexer::Token::TokenType::MATCH);
+    if (!match_token)
+    {
+        return nullptr;
+    }
+
+    Node* match_node = arena.alloc<Node>(NodeType::MATCH, match_token, parseExpression(0));
+
+    if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected code block after match expression \n";
+        return nullptr;
+    }
+
+    consume();
+
+    while (peek()->type != Lexer::Token::TokenType::RIGHT_CURLY_BRACKET && peek()->type != Lexer::Token::TokenType::END_OF_FILE)
+    {
+        if (peek()->type == Lexer::Token::TokenType::END_OF_FILE)
+        {
+            std::cerr << "Expected '}' after code block \n";
+            return nullptr;
+        }
+
+        Node* case_node = parseExpression(0);
+        if (peek()->type != Lexer::Token::TokenType::ARROW)
+        {
+            std::cerr << "Expected '=>' after case \n";
+            return nullptr;
+        }
+        Node* arrow_node = arena.alloc<Node>(NodeType::ARROW, consume(), case_node);
+        arrow_node->first_child->next_sibling = parseStatement();
+
+        match_node->addChild(arrow_node);
+    }
+    if (peek()->type == Lexer::Token::TokenType::END_OF_FILE)
+    {
+        std::cerr << "Expected '}' after code block \n";
+        return nullptr;
+    }
+    if (peek()->type != Lexer::Token::TokenType::RIGHT_CURLY_BRACKET)
+    {
+        std::cerr << "Expected '}' after code block \n";
+        return nullptr;
+    }
+    consume(Lexer::Token::TokenType::RIGHT_CURLY_BRACKET);
+
+    return match_node;
+}
 
 Node* Parser::parseCodeBlock()
 {

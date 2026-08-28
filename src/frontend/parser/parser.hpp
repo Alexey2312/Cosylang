@@ -38,6 +38,8 @@ private:
     Node* parseWhileStatement();
     Node* parseForStatement();
 
+    Node* parseMatchStatement();
+
     Node* parseBodyDeclaration();
     Node* parseTypeDeclaration();
 public:

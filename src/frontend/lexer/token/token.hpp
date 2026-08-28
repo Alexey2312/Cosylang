@@ -79,6 +79,8 @@ enum class TokenType
     RETURN, // return
     ARROW, // =>
 
+    DEFAULT, // _
+
     BODY, // keyword 'body'
 
     TYPE, // keyword 'type'
