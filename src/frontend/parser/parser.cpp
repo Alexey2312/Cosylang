@@ -1,5 +1,6 @@
 #include "parser.hpp"
 #include "node/node.hpp"
+
 #include <iostream>
 #include <string>
 
@@ -68,6 +69,7 @@ const Lexer::Token::Token* Parser::consume()
     }
     return token;
 }
+
 
 Node* Parser::parseExpression(int left_binding_power)
 {
@@ -257,6 +259,7 @@ inline int Parser::getInfixBindingPower(Lexer::Token::TokenType type)
             return -1;
     }
 }
+
 
 Node* Parser::parseStatement()
 {
@@ -881,6 +884,16 @@ Node* Parser::parseCodeBlock()
     }
     consume(Lexer::Token::TokenType::RIGHT_CURLY_BRACKET, "Expected '}' at end of code block");
     return block;
+}
+
+const Node* Parser::parse()
+{
+    Node* out = arena.alloc<Node>(NodeType::PROGRAM, &tokens[0]);
+    while (tokens[cursor].type != Lexer::Token::TokenType::END_OF_FILE)
+    {
+        out->addChild(parseStatement());
+    }
+    return out;
 }
 
 } // namespace Cosylang::Parser
