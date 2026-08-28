@@ -278,6 +278,10 @@ inline Token::Token Lexer::processIdentifier()
 
     switch (token_text.length())
     {
+        case 1:
+        {
+            if (token_text == "_") return Token::Token(Token::TokenType::DEFAULT, token_text, line, id_column, id_offset);
+        }
         case 2:
         {
             if (token_text == "or") return Token::Token(Token::TokenType::OR, token_text, line, id_column, id_offset);
@@ -352,6 +356,11 @@ inline Token::Token Lexer::processNumber()
 
         if (*current == '.')
         {
+            if (current[1] == '.')
+            {
+                end = current;
+                break;
+            }
             dots_count++;
             if (dots_count > 1)
             {
