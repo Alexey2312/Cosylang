@@ -252,9 +252,12 @@ inline void Lexer::skipWhitespace() noexcept
             line++;
             column = 0;
         }
+        if (*current != '\t')
+        {
+            column++;
+        }
         current++;
         offset++;
-        column++;
     }
 }
 

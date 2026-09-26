@@ -4,6 +4,7 @@
 #include <vector>
 #include "node/node.hpp"
 #include "../../utills/arena-allocator.hpp"
+#include "../../diagnostics/error-reporter.hpp"
 
 namespace Cosylang::Parser
 {
@@ -14,6 +15,9 @@ private:
     std::vector<Lexer::Token::Token>& tokens;
     size_t cursor = 0;
     Arena& arena;
+    Reporter::DiagnosticEngine& err;
+
+    size_t file_id;
 
     inline int getInfixBindingPower(Lexer::Token::TokenType type);
 
@@ -47,8 +51,8 @@ public:
     Node* parseExpression(int left_binding_power);
     const Node* parse();
 
-    Parser(std::vector<Lexer::Token::Token>& this_tokens, Arena& this_arena)
-        : tokens(this_tokens), arena(this_arena) {}
+    Parser(std::vector<Lexer::Token::Token>& this_tokens, Arena& this_arena, size_t this_file, Reporter::DiagnosticEngine& this_diagnostic)
+        : tokens(this_tokens), arena(this_arena), file_id(this_file), err(this_diagnostic) {}
 
 };
 

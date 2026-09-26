@@ -4,13 +4,29 @@
 
 UNIT_TEST(ParsePlusExpression)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "2+2";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("2+2");
 
     auto tokens = lexer.tokenize();
 
     Arena arena = Arena(128);
 
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -23,10 +39,26 @@ UNIT_TEST(ParsePlusExpression)
 
 UNIT_TEST(ParseOperatorPrecedence)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "2 + 3 * 4";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("2 + 3 * 4");
     auto tokens = lexer.tokenize();
     Arena arena(256);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -48,10 +80,26 @@ UNIT_TEST(ParseOperatorPrecedence)
 
 UNIT_TEST(ParseParenthesesPrecedence)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "(2 + 3) * 4";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("(2 + 3) * 4");
     auto tokens = lexer.tokenize();
     Arena arena(256);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -69,10 +117,26 @@ UNIT_TEST(ParseParenthesesPrecedence)
 
 UNIT_TEST(ParseUnaryExpression)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "-42";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("-42");
     auto tokens = lexer.tokenize();
     Arena arena(128);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -87,10 +151,26 @@ UNIT_TEST(ParseUnaryExpression)
 
 UNIT_TEST(ParseFunctionCallExpression)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "function(12, 42)";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("function(12, 42)");
     auto tokens = lexer.tokenize();
     Arena arena(256);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -106,10 +186,26 @@ UNIT_TEST(ParseFunctionCallExpression)
 
 UNIT_TEST(ParseEmptyFunctionCallExpression)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "foo()";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("foo()");
     auto tokens = lexer.tokenize();
     Arena arena(128);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -122,10 +218,26 @@ UNIT_TEST(ParseEmptyFunctionCallExpression)
 
 UNIT_TEST(ParseAssignmentExpression)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "x = 100";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("x = 100");
     auto tokens = lexer.tokenize();
     Arena arena(128);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -135,6 +247,7 @@ UNIT_TEST(ParseAssignmentExpression)
                     node->first_child->type == Cosylang::Parser::NodeType::ID &&
                     node->first_child->token->name == "x" &&
                     node->first_child->next_sibling &&
+
                     node->first_child->next_sibling->type == Cosylang::Parser::NodeType::LITERAL &&
                     node->first_child->next_sibling->token->name == "100";
 
@@ -143,10 +256,26 @@ UNIT_TEST(ParseAssignmentExpression)
 
 UNIT_TEST(ParseIndexExpression)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "arr[1]";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
     Cosylang::Lexer::Lexer lexer("arr[1]");
     auto tokens = lexer.tokenize();
     Arena arena(128);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
@@ -163,10 +292,27 @@ UNIT_TEST(ParseIndexExpression)
 
 UNIT_TEST(ParsePrimaryLiterals)
 {
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "'hello world'";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
     Cosylang::Lexer::Lexer lexer("'hello world'");
     auto tokens = lexer.tokenize();
     Arena arena(64);
-    Cosylang::Parser::Parser parser(tokens, arena);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
 
     Cosylang::Parser::Node* node = parser.parseExpression(0);
 
