@@ -1,7 +1,7 @@
 #include "parser.hpp"
 #include "node/node.hpp"
+#include "../../diagnostics/error-reporter.hpp"
 
-#include <iostream>
 #include <string>
 
 namespace Cosylang::Parser
@@ -55,7 +55,7 @@ const Lexer::Token::Token* Parser::consume(Lexer::Token::TokenType type, std::st
     }
     else
     {
-        std::cerr << error << "\n";
+        err.reportParseError(token, error, file_id);
         return nullptr;
     }
 }
@@ -131,7 +131,7 @@ Node* Parser::parseExpression(int left_binding_power)
 
                         if (peek()->type != Lexer::Token::TokenType::RIGHT_BRACKET)
                         {
-                            std::cerr << "Expected ',' or ')' in argument list. \n";
+                            err.reportParseError(peek(), "Expected ',' or ')' in argument list", file_id);
                         }
                     }
                 }
@@ -147,7 +147,7 @@ Node* Parser::parseExpression(int left_binding_power)
                 lhs = arena.alloc<Node>(NodeType::INDEX, token, lhs);
                 if (peek()->type != Lexer::Token::TokenType::RIGHT_SQUARE_BRACKET)
                 {
-                    std::cerr << "Expected ']' after array index, but got: " << peek()->name << " \n";
+                    err.reportParseError(peek(), std::string("Expected ']' after array index, but got: ") + std::string(peek()->name), file_id);
                 }
                 consume(Lexer::Token::TokenType::RIGHT_SQUARE_BRACKET);
                 break;
@@ -163,7 +163,7 @@ Node* Parser::parseExpression(int left_binding_power)
             lhs = parseExpression(0);
             if (peek()->type != Lexer::Token::TokenType::RIGHT_BRACKET)
             {
-                std::cerr << "Expected ')' after expression \n";
+                err.reportParseError(peek(), "Expected ')' after expression", file_id);
             }
             consume(Lexer::Token::TokenType::RIGHT_BRACKET);
             break;
@@ -178,7 +178,7 @@ Node* Parser::parseExpression(int left_binding_power)
             break;
         }
         default:
-            std::cerr << "Unexpected token: " + std::string(token->name) + "\n";
+            err.reportParseError(token, "Unexpected token: " + std::string(token->name), file_id);
     }
 
     for (;;)
@@ -330,7 +330,7 @@ Node* Parser::parseVariableDeclaration()
     const Lexer::Token::Token* var_token = consume(Lexer::Token::TokenType::VAR);
     if (!var_token)
     {
-        std::cerr << "Expected 'var' keyword in variable declaration\n";
+        err.reportParseError(var_token, "Expected 'var' keyword in variable declaration", file_id);
         return nullptr;
     }
 
@@ -339,7 +339,7 @@ Node* Parser::parseVariableDeclaration()
     const Lexer::Token::Token* id_token = consume(Lexer::Token::TokenType::ID);
     if (!id_token)
     {
-        std::cerr << "Expected variable name\n";
+        err.reportParseError(id_token, "Expected variable name", file_id);
         return nullptr;
     }
 
@@ -353,7 +353,7 @@ Node* Parser::parseVariableDeclaration()
         const Lexer::Token::Token* type_token = consume(Lexer::Token::TokenType::ID);
         if (!type_token)
         {
-            std::cerr << "Expected type after ':'\n";
+            err.reportParseError(type_token, "Expected type after ':'", file_id);
             return nullptr;
         }
 
@@ -382,7 +382,7 @@ Node* Parser::parseConstantDeclaration()
     const Lexer::Token::Token* const_token = consume(Lexer::Token::TokenType::CONST);
     if (!const_token)
     {
-        std::cerr << "Expected 'const' keyword in constant declaration\n";
+        err.reportParseError(const_token, "Expected 'const' keyword in constant declaration", file_id);
         return nullptr;
     }
 
@@ -391,7 +391,7 @@ Node* Parser::parseConstantDeclaration()
     const Lexer::Token::Token* id_token = consume(Lexer::Token::TokenType::ID);
     if (!id_token)
     {
-        std::cerr << "Expected variable name\n";
+        err.reportParseError(id_token, "Expected constant name", file_id);
         return nullptr;
     }
 
@@ -405,7 +405,7 @@ Node* Parser::parseConstantDeclaration()
         const Lexer::Token::Token* type_token = consume(Lexer::Token::TokenType::ID);
         if (!type_token)
         {
-            std::cerr << "Expected type after ':'\n";
+            err.reportParseError(type_token, "Expected type after ':'", file_id);
             return nullptr;
         }
 
@@ -427,7 +427,7 @@ Node* Parser::parseConstantDeclaration()
     }
     else
     {
-        std::cerr << "Constant must be initialized \n";
+        err.reportParseError(id_token, "Constant must be initialized", file_id);
         return nullptr;
     }
     const_keyword->first_child = left_assign_operand;
@@ -447,7 +447,7 @@ Node* Parser::parseFunctionDeclaration()
     const Lexer::Token::Token* name_token = consume(Lexer::Token::TokenType::ID);
     if (!name_token)
     {
-        std::cerr << "Expected function name\n";
+        err.reportParseError(name_token, "Expected function name", file_id);
         return nullptr;
     }
     Node* name_node = arena.alloc<Node>(NodeType::ID, name_token);
@@ -479,7 +479,7 @@ Node* Parser::parseParams()
 {
     if (peek()->type != Lexer::Token::TokenType::LEFT_BRACKET)
     {
-        std::cerr << "Expected '(' in params list\n";
+        err.reportParseError(peek(), "Expected '(' in params list", file_id);
         return nullptr;
     }
 
@@ -518,7 +518,7 @@ Node* Parser::parseParam()
     const Lexer::Token::Token* param_name_token = consume(Lexer::Token::TokenType::ID);
     if (!param_name_token)
     {
-        std::cerr << "Expected param name\n";
+        err.reportParseError(peek(), "Expected param name", file_id);
         return nullptr;
     }
 
@@ -583,13 +583,13 @@ Node* Parser::parseIfStatement()
     Node* condition = parseExpression(0);
     if (!condition)
     {
-        std::cerr << "Expected condition after 'if'\n";
+        err.reportParseError(peek(), "Expected condition after 'if'", file_id);
         return nullptr;
     }
 
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected code block after 'if'\n";
+        err.reportParseError(peek(), "Expected code block after 'if'", file_id);
         return nullptr;
     }
     Node* code_block = parseCodeBlock();
@@ -627,13 +627,13 @@ Node* Parser::parseElifStatement()
         Node* condition = parseExpression(0);
         if (!condition)
         {
-            std::cerr << "Expected condition after 'elif'\n";
+            err.reportParseError(peek(), "Expected condition after 'elif'", file_id);
             return nullptr;
         }
 
         if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
         {
-            std::cerr << "Expected code block after 'elif'\n";
+            err.reportParseError(peek(), "Expected code block after 'elif'", file_id);
             return nullptr;
         }
         Node* code_block = parseCodeBlock();
@@ -663,7 +663,7 @@ Node* Parser::parseElseStatement()
     Node* else_statement = arena.alloc<Node>(NodeType::ELSE, consume());
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected code block after 'else'\n";
+        err.reportParseError(peek(), "Expected code block after 'else'", file_id);
         return nullptr;
     }
     Node* code_block = parseCodeBlock();
@@ -683,13 +683,13 @@ Node* Parser::parseWhileStatement()
     Node* condition = parseExpression(0);
     if (!condition)
     {
-        std::cerr << "Expected condition after 'while'\n";
+        err.reportParseError(peek(), "Expected condition after 'while'", file_id);
         return nullptr;
     }
 
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected code block after 'while'\n";
+        err.reportParseError(peek(), "Expected condition after 'while'", file_id);
         return nullptr;
     }
     Node* code_block = parseCodeBlock();
@@ -711,14 +711,14 @@ Node* Parser::parseBodyDeclaration()
     Node* body_keyword = arena.alloc<Node>(NodeType::BODY, consume());
     if (peek()->type != Lexer::Token::TokenType::ID)
     {
-        std::cerr << "Expected body name \n";
+        err.reportParseError(peek(), "Expected body name", file_id);
         return nullptr;
     }
     body_keyword->first_child = arena.alloc<Node>(NodeType::ID, consume());
 
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected code block after body name\n";
+        err.reportParseError(peek(), "Expected code block after body name", file_id);
         return nullptr;
     }
 
@@ -769,7 +769,7 @@ Node* Parser::parseForStatement()
     const Lexer::Token::Token* id_token = consume(Lexer::Token::TokenType::ID);
     if (!id_token)
     {
-        std::cerr << "Expected variable name after 'for'\n";
+         err.reportParseError(peek(), "Expected variable name after 'for'", file_id);
         return nullptr;
     }
     Node* first_id_node = arena.alloc<Node>(NodeType::ID, id_token);
@@ -777,14 +777,14 @@ Node* Parser::parseForStatement()
     const Lexer::Token::Token* colon_token = consume(Lexer::Token::TokenType::COLON);
     if (!colon_token)
     {
-        std::cerr << "Expected ':' after variable name in for loop\n";
+        err.reportParseError(peek(), "Expected ':' after variable name in for loop", file_id);
         return nullptr;
     }
 
     Node* iterable = parseExpression(0);
     if (!iterable)
     {
-        std::cerr << "Expected expression after ':' in for loop\n";
+        err.reportParseError(peek(), "Expected expression after ':' in for loop", file_id);
         return nullptr;
     }
 
@@ -793,7 +793,7 @@ Node* Parser::parseForStatement()
 
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected '{' code block in for loop\n";
+        err.reportParseError(peek(), "Expected '{' code block in for loop", file_id);
         return nullptr;
     }
 
@@ -816,7 +816,7 @@ Node* Parser::parseMatchStatement()
 
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected code block after match expression \n";
+        err.reportParseError(peek(), "Expected code block after match expression", file_id);
         return nullptr;
     }
 
@@ -826,14 +826,14 @@ Node* Parser::parseMatchStatement()
     {
         if (peek()->type == Lexer::Token::TokenType::END_OF_FILE)
         {
-            std::cerr << "Expected '}' after code block \n";
+            err.reportParseError(peek(), "Expected '}' after code block", file_id);
             return nullptr;
         }
 
         Node* case_node = parseExpression(0);
         if (peek()->type != Lexer::Token::TokenType::ARROW)
         {
-            std::cerr << "Expected '=>' after case \n";
+            err.reportParseError(peek(), "Expected '=>' after case", file_id);
             return nullptr;
         }
         Node* arrow_node = arena.alloc<Node>(NodeType::ARROW, consume(), case_node);
@@ -843,12 +843,12 @@ Node* Parser::parseMatchStatement()
     }
     if (peek()->type == Lexer::Token::TokenType::END_OF_FILE)
     {
-        std::cerr << "Expected '}' after code block \n";
+        err.reportParseError(peek(), "Expected '}' after code block", file_id);
         return nullptr;
     }
     if (peek()->type != Lexer::Token::TokenType::RIGHT_CURLY_BRACKET)
     {
-        std::cerr << "Expected '}' after code block \n";
+        err.reportParseError(peek(), "Expected '}' after code block", file_id);
         return nullptr;
     }
     consume(Lexer::Token::TokenType::RIGHT_CURLY_BRACKET);
@@ -860,7 +860,7 @@ Node* Parser::parseCodeBlock()
 {
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        std::cerr << "Expected '{' in code block \n";
+        err.reportParseError(peek(), "Expected '{' in code block", file_id);
         return nullptr;
     }
     Node* block = arena.alloc<Node>(NodeType::CODE_BLOCK, consume(Lexer::Token::TokenType::LEFT_CURLY_BRACKET));
