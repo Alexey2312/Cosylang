@@ -232,6 +232,19 @@ std::vector<Token::Token> Lexer::tokenize()
                     pushBackToken(out_vector, processString());
                     continue;
                 }
+                case '\n':
+                {
+                    while (*current == '\r' || *current == '\n')
+                    {
+                        if (*current == '\n')
+                        {
+                            line++;
+                            column = 0;
+                        }
+                        current++;
+                        offset++;
+                    }
+                }
                 default:
                 {
                     std::cerr << "Unknown token! \n";
