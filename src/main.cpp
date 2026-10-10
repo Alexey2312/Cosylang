@@ -169,8 +169,9 @@ int main(int argc, char* argv[])
         std::cout << "\033[A\033[2K\r";
         std::cout << "\033[A\033[2K\r";
         std::cout << "\033[A\033[2K\r";
+        std::cout << BLUE << headline << RESET;
 
-        typeText(BLUE + "\033[1A" + headline + GREEN + "✓ \n" + RESET, typing_speed);
+        typeText(BLUE + "\033[1A" + GREEN + "✓ \n" + RESET, typing_speed);
     }
 
     return 0;
