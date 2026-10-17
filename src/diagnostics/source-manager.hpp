@@ -39,7 +39,7 @@ struct FileBuffer
         int i = 0;
         while (source.at(i) != '\0')
         {
-            if (source.at(i) == '\t')
+            if (source.at(i) == '\t' || source.at(i) == '\r')
             {
                 i++;
                 continue;
@@ -65,6 +65,8 @@ struct FileBuffer
 
 class SourceManager
 {
+public:
+
     size_t next_file_id = 0;
     std::vector<std::unique_ptr<FileBuffer>> files;
 
@@ -79,8 +81,6 @@ class SourceManager
             }
         }
     }
-
-public:
 
     SourceManager(std::vector<std::unique_ptr<FileBuffer>> this_files)
         : files(std::move(this_files)) {}
@@ -100,7 +100,7 @@ public:
         auto buffer = std::make_unique<FileBuffer>();
         buffer->file_name = filepath;
         buffer->file_id = next_file_id++;
-        buffer->source_code = std::move(file_content);
+        buffer->source_code = buffer->formatSource(file_content);
         buildLineOffsets(*buffer);
 
         size_t loaded_id = buffer->file_id;

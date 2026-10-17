@@ -1,8 +1,8 @@
 clear:
     rm -rf build
 
-run:
-    ./build/Cosylang
+run-tests:
+    ./build/Cosylang test
 
 build:
     mkdir -p build

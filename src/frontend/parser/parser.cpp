@@ -889,7 +889,7 @@ Node* Parser::parseCodeBlock()
 const Node* Parser::parse()
 {
     Node* out = arena.alloc<Node>(NodeType::PROGRAM, &tokens[0]);
-    while (tokens[cursor].type != Lexer::Token::TokenType::END_OF_FILE)
+    while (tokens.size() > cursor && tokens[cursor].type != Lexer::Token::TokenType::END_OF_FILE)
     {
         out->addChild(parseStatement());
     }
