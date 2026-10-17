@@ -41,6 +41,7 @@ enum class NodeType
     FUNC,
     TYPE,
     NAMESPACE,
+    MODULE,
     IMPORT,
 
     BODY,

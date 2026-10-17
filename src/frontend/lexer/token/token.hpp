@@ -60,6 +60,7 @@ enum class TokenType
 
     IMPORT, // import
     NAMESPACE, // namespace
+    MODULE, // module
 
     VAR, // var
     CONST, // const

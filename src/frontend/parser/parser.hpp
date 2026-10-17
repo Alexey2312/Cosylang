@@ -45,6 +45,8 @@ private:
     Node* parseMatchStatement();
 
     Node* parseBodyDeclaration();
+    Node* parseNamespace();
+    Node* parseModule();
     Node* parseTypeDeclaration();
 public:
     Node* parseStatement();

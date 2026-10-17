@@ -335,6 +335,7 @@ inline Token::Token Lexer::processIdentifier()
         {
             if (token_text == "import") return Token::Token(Token::TokenType::IMPORT, token_text, line, id_column, id_offset);
             else if (token_text == "return") return Token::Token(Token::TokenType::RETURN, token_text, line, id_column, id_offset);
+            else if (token_text == "module") return Token::Token(Token::TokenType::MODULE, token_text, line, id_column, id_offset);
             else return Token::Token(Token::TokenType::ID, token_text, line, id_column, id_offset);
         }
         case 8:

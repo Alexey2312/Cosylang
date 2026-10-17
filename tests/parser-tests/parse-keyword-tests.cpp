@@ -894,3 +894,153 @@ UNIT_TEST(ParserTest)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(ParseNamespaceWithoutBodyTest)
+{
+    std::string file_code = "namespace a";
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+    Cosylang::Reporter::DiagnosticConfig config{true, false, true, std::cerr};
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
+    Cosylang::Lexer::Lexer lexer(file_code.c_str());
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
+
+    const Cosylang::Parser::Node* program = parser.parse();
+
+    bool is_valid = program &&
+                    program->type == Cosylang::Parser::NodeType::PROGRAM &&
+
+                    program->first_child &&
+                    program->first_child->type == Cosylang::Parser::NodeType::NAMESPACE &&
+                    program->first_child->token->type == Cosylang::Lexer::Token::TokenType::NAMESPACE &&
+
+                    program->first_child->first_child &&
+                    program->first_child->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    program->first_child->first_child->token->name == "a" &&
+
+                    program->first_child->first_child->next_sibling == nullptr;
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseNamespaceWithBodyDeclarationTest)
+{
+    std::string file_code = "namespace a {\nbody Name\n{\n\n}\n}";
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+    Cosylang::Reporter::DiagnosticConfig config{true, false, true, std::cerr};
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
+    Cosylang::Lexer::Lexer lexer(file_code.c_str());
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
+
+    const Cosylang::Parser::Node* program = parser.parse();
+
+    bool is_valid = program &&
+                    program->type == Cosylang::Parser::NodeType::PROGRAM &&
+
+                    program->first_child &&
+                    program->first_child->type == Cosylang::Parser::NodeType::NAMESPACE &&
+                    program->first_child->token->type == Cosylang::Lexer::Token::TokenType::NAMESPACE &&
+
+                    program->first_child->first_child &&
+                    program->first_child->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    program->first_child->first_child->token->name == "a" &&
+
+                    program->first_child->first_child->next_sibling &&
+                    program->first_child->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
+                    program->first_child->first_child->next_sibling->token->type == Cosylang::Lexer::Token::TokenType::LEFT_CURLY_BRACKET &&
+
+                    program->first_child->first_child->next_sibling->first_child &&
+                    program->first_child->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::BODY &&
+                    program->first_child->first_child->next_sibling->first_child->first_child &&
+                    program->first_child->first_child->next_sibling->first_child->first_child->token->name == "Name";
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseModuleWithoutBodyTest)
+{
+    std::string file_code = "module a";
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+    Cosylang::Reporter::DiagnosticConfig config{true, false, true, std::cerr};
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
+    Cosylang::Lexer::Lexer lexer(file_code.c_str());
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
+
+    const Cosylang::Parser::Node* program = parser.parse();
+
+    bool is_valid = program &&
+                    program->type == Cosylang::Parser::NodeType::PROGRAM &&
+
+                    program->first_child &&
+                    program->first_child->type == Cosylang::Parser::NodeType::MODULE &&
+                    program->first_child->token->type == Cosylang::Lexer::Token::TokenType::MODULE &&
+
+                    program->first_child->first_child &&
+                    program->first_child->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    program->first_child->first_child->token->name == "a" &&
+
+                    program->first_child->first_child->next_sibling == nullptr;
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(ParseModuleWithBodyDeclarationTest)
+{
+    std::string file_code = "module a {\n body Name\n {\n\n } \n }";
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+    Cosylang::Reporter::DiagnosticConfig config{true, false, true, std::cerr};
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
+    Cosylang::Lexer::Lexer lexer(file_code.c_str());
+    auto tokens = lexer.tokenize();
+
+    Arena arena = Arena(256);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
+
+    const Cosylang::Parser::Node* program = parser.parse();
+
+    bool is_valid = program &&
+                    program->type == Cosylang::Parser::NodeType::PROGRAM &&
+
+                    program->first_child &&
+                    program->first_child->type == Cosylang::Parser::NodeType::MODULE &&
+                    program->first_child->token->type == Cosylang::Lexer::Token::TokenType::MODULE &&
+
+                    program->first_child->first_child &&
+                    program->first_child->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    program->first_child->first_child->token->name == "a" &&
+
+                    program->first_child->first_child->next_sibling &&
+                    program->first_child->first_child->next_sibling->type == Cosylang::Parser::NodeType::CODE_BLOCK &&
+                    program->first_child->first_child->next_sibling->token->type == Cosylang::Lexer::Token::TokenType::LEFT_CURLY_BRACKET &&
+
+                    program->first_child->first_child->next_sibling->first_child &&
+                    program->first_child->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::BODY &&
+                    program->first_child->first_child->next_sibling->first_child->first_child &&
+                    program->first_child->first_child->next_sibling->first_child->first_child->token->name == "Name";
+
+    Silteli::expect(is_valid);
+}

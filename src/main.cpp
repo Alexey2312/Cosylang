@@ -95,11 +95,18 @@ public:
         };
         Cosylang::Reporter::DiagnosticEngine error_reporter(config, source);
 
-        for (auto inputFile : input_files_paths)
+        for (auto input_file : input_files_paths)
         {
-            source.loadFile(inputFile);
-            std::string input_source = source.getFileBuffer(source.files.size() - 1)->source_code;
-            std::string headline = BLUE + "Compiling " + inputFile + ": " + RESET;
+            source.loadFile(input_file);
+        }
+
+        int current_file = 0;
+
+        for (auto input_file : input_files_paths)
+        {
+            std::string input_source = source.getFileBuffer(current_file)->source_code;
+            current_file++;
+            std::string headline = BLUE + "Compiling " + input_file + ": " + RESET;
             typeText(headline + "\n");
 
             Cosylang::Lexer::Lexer lex(input_source.c_str());
@@ -132,7 +139,7 @@ public:
             return 1;
         }
 
-        std::vector<std::string> inputFilesPaths;
+        std::vector<std::string> input_filesPaths;
         std::string outputFile = "out.o";
 
         for (int i = 1; i < argc; ++i)
@@ -162,7 +169,7 @@ public:
             }
             else if (i + 1 < argc)
             {
-                inputFilesPaths.emplace_back(arg);
+                input_filesPaths.emplace_back(arg);
             }
             else
             {
@@ -170,7 +177,7 @@ public:
                 return 0;
             }
         }
-        compileFiles(inputFilesPaths);
+        compileFiles(input_filesPaths);
         return 0;
     }
 };

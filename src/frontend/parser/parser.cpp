@@ -318,6 +318,14 @@ Node* Parser::parseStatement()
         {
             return parseMatchStatement();
         }
+        case Lexer::Token::TokenType::NAMESPACE:
+        {
+            return parseNamespace();
+        }
+        case Lexer::Token::TokenType::MODULE:
+        {
+            return parseModule();
+        }
         default:
         {
             return parseExpression(0);
@@ -855,6 +863,53 @@ Node* Parser::parseMatchStatement()
 
     return match_node;
 }
+
+Node* Parser::parseNamespace()
+{
+    if (peek()->type != Lexer::Token::TokenType::NAMESPACE)
+    {
+        return nullptr;
+    }
+
+    Node* namespace_keyword = arena.alloc<Node>(NodeType::NAMESPACE, consume());
+    if (peek()->type != Lexer::Token::TokenType::ID)
+    {
+        err.reportParseError(peek(), "Expected namespace name", file_id);
+        return nullptr;
+    }
+    namespace_keyword->first_child = arena.alloc<Node>(NodeType::ID, consume());
+
+    if (peek()->type == Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        namespace_keyword->addChild(parseCodeBlock());
+    }
+
+    return namespace_keyword;
+}
+
+Node* Parser::parseModule()
+{
+    if (peek()->type != Lexer::Token::TokenType::MODULE)
+    {
+        return nullptr;
+    }
+
+    Node* module_keyword = arena.alloc<Node>(NodeType::MODULE, consume());
+    if (peek()->type != Lexer::Token::TokenType::ID)
+    {
+        err.reportParseError(peek(), "Expected module name, but got" + std::string(peek()->name), file_id);
+        return nullptr;
+    }
+    module_keyword->first_child = arena.alloc<Node>(NodeType::ID, consume());
+
+    if (peek()->type == Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
+    {
+        module_keyword->addChild(parseCodeBlock());
+    }
+
+    return module_keyword;
+}
+
 
 Node* Parser::parseCodeBlock()
 {
