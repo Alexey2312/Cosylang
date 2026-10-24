@@ -48,14 +48,16 @@ struct Symbol
     std::variant<Kind, FunctionKind> kind;
     Visibility visibility = Visibility::PRIVATE;
     Parser::Node* node = nullptr;
+    bool is_export = false;
 
     Symbol() = default;
 
-    Symbol(Symbol&& other) noexcept
-        : name(std::move(other.name)),
-          kind(std::move(other.kind)),
-          visibility(other.visibility),
-          node(other.node)
+    Symbol(Symbol&& other) noexcept :
+        name(std::move(other.name)),
+        kind(std::move(other.kind)),
+        visibility(other.visibility),
+        node(other.node),
+        is_export(other.is_export)
     {
         other.node = nullptr;
     }
@@ -67,17 +69,19 @@ struct Symbol
             name = std::move(other.name);
             kind = std::move(other.kind);
             visibility = other.visibility;
+            is_export = other.is_export;
             node = other.node;
             other.node = nullptr;
         }
         return *this;
     }
 
-    Symbol(const Symbol& other)
-        : name(other.name),
-          kind(other.kind),
-          visibility(other.visibility),
-          node(other.node) {}
+    Symbol(const Symbol& other) :
+        name(other.name),
+        kind(other.kind),
+        visibility(other.visibility),
+        node(other.node),
+        is_export(other.is_export) {}
 
     Symbol& operator=(const Symbol& other)
     {
@@ -87,6 +91,7 @@ struct Symbol
             kind = other.kind;
             visibility = other.visibility;
             node = other.node;
+            is_export = other.is_export;
         }
         return *this;
     }
