@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../parser/node/node.hpp"
+#include "type.hpp"
 
 #include <string>
 #include <variant>
@@ -33,34 +34,51 @@ struct Kind
 };
 
 struct Symbol;
+struct Scope;
+
+struct VariableKind
+{
+    SymbolKind type_name = SymbolKind::VARIABLE;
+    Type type = Type("void", TypeKind::VOID);
+};
+
+struct ParameterKind
+{
+    SymbolKind type_name = SymbolKind::PARAM;
+    Type type = Type("void", TypeKind::VOID);
+};
 
 struct FunctionKind
 {
     SymbolKind type_name = SymbolKind::FUNCTION;
-    std::vector<Kind> params = {};
+    Scope* scope = nullptr;
+    Type type = Type("function", TypeKind::FUNCTION);
+    Type returning_type = Type("void", TypeKind::VOID);
     std::vector<Symbol*> overloads = {};
 };
 
+struct StructKind
+{
+    SymbolKind type_name = SymbolKind::PARAM;
+    Type type = Type("struct", TypeKind::STRUCT);
+};
 
 struct Symbol
 {
     std::string name;
-    std::variant<Kind, FunctionKind> kind;
+    std::variant<Kind, VariableKind, ParameterKind, FunctionKind, StructKind> kind;
     Visibility visibility = Visibility::PRIVATE;
     Parser::Node* node = nullptr;
     bool is_export = false;
 
     Symbol() = default;
 
-    Symbol(Symbol&& other) noexcept :
-        name(std::move(other.name)),
+    Symbol(Symbol&& other) noexcept
+        : name(std::move(other.name)),
         kind(std::move(other.kind)),
         visibility(other.visibility),
         node(other.node),
-        is_export(other.is_export)
-    {
-        other.node = nullptr;
-    }
+        is_export(other.is_export) {other.node = nullptr;}
 
     Symbol& operator=(Symbol&& other) noexcept
     {
@@ -76,8 +94,8 @@ struct Symbol
         return *this;
     }
 
-    Symbol(const Symbol& other) :
-        name(other.name),
+    Symbol(const Symbol& other)
+        : name(other.name),
         kind(other.kind),
         visibility(other.visibility),
         node(other.node),
