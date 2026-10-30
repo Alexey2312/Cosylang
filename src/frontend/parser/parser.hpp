@@ -27,6 +27,8 @@ private:
     inline const Lexer::Token::Token* consume(Lexer::Token::TokenType type, std::string error);
     inline const Lexer::Token::Token* consume();
 
+    Node* parsePostfixExpression(Node* left);
+
     Node* parseVariableDeclaration();
     Node* parseConstantDeclaration();
     Node* parseFunctionDeclaration();
@@ -44,7 +46,7 @@ private:
 
     Node* parseMatchStatement();
 
-    Node* parseBodyDeclaration();
+    Node* parseStructureDeclaration();
     Node* parseNamespace();
     Node* parseModule();
     Node* parseTypeDeclaration();

@@ -65,11 +65,11 @@ UNIT_TEST(LexerKeywordsAndIdentifiersTest)
 
 UNIT_TEST(LexerOperatorsTest)
 {
-    Cosylang::Lexer::Lexer lexer("+ += => = . .. == !=");
+    Cosylang::Lexer::Lexer lexer("+ += => = . .. == != ::");
 
     auto tokens = lexer.tokenize();
 
-    bool is_valid = (tokens.size() == 9) &&
+    bool is_valid = (tokens.size() == 10) &&
                     (tokens[0].type == TokenType::PLUS) &&
                     (tokens[1].type == TokenType::PLUS_ASSIGN) &&
                     (tokens[2].type == TokenType::ARROW) &&
@@ -78,7 +78,8 @@ UNIT_TEST(LexerOperatorsTest)
                     (tokens[5].type == TokenType::RANGE) &&
                     (tokens[6].type == TokenType::EQUALS) &&
                     (tokens[7].type == TokenType::NOT_EQUALS) &&
-                    (tokens[8].type == TokenType::END_OF_FILE);
+                    (tokens[8].type == TokenType::DOUBLE_COLON) &&
+                    (tokens[9].type == TokenType::END_OF_FILE);
 
     Silteli::expect(is_valid);
 }

@@ -62,6 +62,12 @@ std::vector<Token::Token> Lexer::tokenize()
                 }
                 case ':':
                 {
+                    if (current[1] == ':')
+                    {
+                        pushBackToken(out_vector, Token::Token(Token::TokenType::DOUBLE_COLON, "::", line, column, offset));
+                        current++;
+                        continue;
+                    }
                     pushBackToken(out_vector, Token::Token(Token::TokenType::COLON, ":", line, column, offset));
                     continue;
                 }
@@ -318,7 +324,6 @@ inline Token::Token Lexer::processIdentifier()
             else if (token_text == "else") return Token::Token(Token::TokenType::ELSE, token_text, line, id_column, id_offset);
             else if (token_text == "elif") return Token::Token(Token::TokenType::ELIF, token_text, line, id_column, id_offset);
             else if (token_text == "func") return Token::Token(Token::TokenType::FUNC, token_text, line, id_column, id_offset);
-            else if (token_text == "body") return Token::Token(Token::TokenType::BODY, token_text, line, id_column, id_offset);
             else if (token_text == "type") return Token::Token(Token::TokenType::TYPE, token_text, line, id_column, id_offset);
             else return Token::Token(Token::TokenType::ID, token_text, line, id_column, id_offset);
         }
@@ -334,6 +339,7 @@ inline Token::Token Lexer::processIdentifier()
         case 6:
         {
             if (token_text == "import") return Token::Token(Token::TokenType::IMPORT, token_text, line, id_column, id_offset);
+            else if (token_text == "struct") return Token::Token(Token::TokenType::STRUCT, token_text, line, id_column, id_offset);
             else if (token_text == "return") return Token::Token(Token::TokenType::RETURN, token_text, line, id_column, id_offset);
             else if (token_text == "module") return Token::Token(Token::TokenType::MODULE, token_text, line, id_column, id_offset);
             else return Token::Token(Token::TokenType::ID, token_text, line, id_column, id_offset);

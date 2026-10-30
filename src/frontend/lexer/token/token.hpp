@@ -19,6 +19,7 @@ enum class TokenType
     DOT, // .
     COMMA,// ,
     COLON, // :
+    DOUBLE_COLON, // ::
     SEMICOLON, // ;
     RANGE, // ..
 
@@ -82,7 +83,7 @@ enum class TokenType
 
     DEFAULT, // _
 
-    BODY, // keyword 'body'
+    STRUCT, // keyword 'struct'
 
     TYPE, // keyword 'type'
 

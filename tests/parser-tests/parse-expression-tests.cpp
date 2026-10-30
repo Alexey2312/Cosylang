@@ -322,3 +322,39 @@ UNIT_TEST(ParsePrimaryLiterals)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(ParseScopeResolution)
+{
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "module1::module2::structure1";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
+    Cosylang::Lexer::Lexer lexer("module1::module2::structure");
+    auto tokens = lexer.tokenize();
+    Arena arena(64);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
+
+    Cosylang::Parser::Node* node = parser.parseExpression(0);
+
+    bool is_valid = node && node->type == Cosylang::Parser::NodeType::DOUBLE_COLON &&
+                    node->first_child && node->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->next_sibling && node->first_child->next_sibling->type == Cosylang::Parser::NodeType::DOUBLE_COLON &&
+                    node->first_child->next_sibling->first_child && node->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->next_sibling->first_child && node->first_child->next_sibling->first_child->next_sibling->type == Cosylang::Parser::NodeType::ID;
+
+
+    Silteli::expect(is_valid);
+}

@@ -17,6 +17,7 @@ enum class NodeType
     INDEX,
     DOT,
     COLON,
+    DOUBLE_COLON,
     RANGE,
 
     CODE_BLOCK,
@@ -44,7 +45,7 @@ enum class NodeType
     MODULE,
     IMPORT,
 
-    BODY,
+    STRUCT,
 
     PROGRAM,
 };

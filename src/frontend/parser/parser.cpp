@@ -215,6 +215,15 @@ Node* Parser::parseExpression(int left_binding_power)
             lhs = arena.alloc<Node>(NodeType::RANGE, next_token, lhs);
             break;
         }
+        if (next_token->type == Lexer::Token::TokenType::DOUBLE_COLON)
+        {
+            consume();
+
+            Node* rhs = parseExpression(0);
+            lhs->next_sibling = rhs;
+            lhs = arena.alloc<Node>(NodeType::DOUBLE_COLON, next_token, lhs);
+            break;
+        }
 
         int right_binding_power = getInfixBindingPower(next_token->type);
 
@@ -255,6 +264,7 @@ inline int Parser::getInfixBindingPower(Lexer::Token::TokenType type)
 
         case Lexer::Token::TokenType::MUL:
         case Lexer::Token::TokenType::DIV: return 40;
+
         default:
             return -1;
     }
@@ -310,9 +320,9 @@ Node* Parser::parseStatement()
         {
             return parseTypeDeclaration();
         }
-        case Lexer::Token::TokenType::BODY:
+        case Lexer::Token::TokenType::STRUCT:
         {
-            return parseBodyDeclaration();
+            return parseStructureDeclaration();
         }
         case Lexer::Token::TokenType::MATCH:
         {
@@ -477,8 +487,8 @@ Node* Parser::parseFunctionDeclaration()
         last_header_node = colon_node;
     }
 
-    Node* body_node = parseCodeBlock();
-    last_header_node->next_sibling = body_node;
+    Node* structure_node = parseCodeBlock();
+    last_header_node->next_sibling = structure_node;
 
     return func_node;
 }
@@ -709,29 +719,29 @@ Node* Parser::parseWhileStatement()
     return while_statement;
 }
 
-Node* Parser::parseBodyDeclaration()
+Node* Parser::parseStructureDeclaration()
 {
-    if (peek()->type != Lexer::Token::TokenType::BODY)
+    if (peek()->type != Lexer::Token::TokenType::STRUCT)
     {
         return nullptr;
     }
 
-    Node* body_keyword = arena.alloc<Node>(NodeType::BODY, consume());
+    Node* structure_keyword = arena.alloc<Node>(NodeType::STRUCT, consume());
     if (peek()->type != Lexer::Token::TokenType::ID)
     {
-        err.reportParseError(peek(), "Expected body name", file_id);
+        err.reportParseError(peek(), "Expected structure name", file_id);
         return nullptr;
     }
-    body_keyword->first_child = arena.alloc<Node>(NodeType::ID, consume());
+    structure_keyword->first_child = arena.alloc<Node>(NodeType::ID, consume());
 
     if (peek()->type != Lexer::Token::TokenType::LEFT_CURLY_BRACKET)
     {
-        err.reportParseError(peek(), "Expected code block after body name", file_id);
+        err.reportParseError(peek(), "Expected code block after struct name", file_id);
         return nullptr;
     }
 
-    body_keyword->addChild(parseCodeBlock());
-    return body_keyword;
+    structure_keyword->addChild(parseCodeBlock());
+    return structure_keyword;
 }
 
 Node* Parser::parseTypeDeclaration()

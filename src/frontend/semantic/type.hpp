@@ -31,10 +31,6 @@ struct Type
         switch (current_kind)
         {
             case TypeKind::BOOL:
-            {
-                convertible_types = {"int8", "int16", "int32", "int64", "int128"};
-                return;
-            }
             case TypeKind::INT:
             {
                 convertible_types = {"int8", "int16", "int32", "int64", "int128"};
@@ -45,12 +41,7 @@ struct Type
                 convertible_types = {"float32", "float64", "float128"};
                 return;
             }
-            case Semantic::TypeKind::VOID:
-            case TypeKind::STRING:
-            case TypeKind::FUNCTION:
-            case TypeKind::STRUCT:
-            case TypeKind::MODULE:
-            case TypeKind::TYPE_ALIAS:
+            default:
             {
                 convertible_types = {};
                 return;

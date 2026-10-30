@@ -1,6 +1,7 @@
 #include "../../src/frontend/parser/parser.hpp"
 #include "../../src/frontend/lexer/lexer.hpp"
 #include "../../external/silteli.hpp"
+#include <string>
 
 UNIT_TEST(ParseVariableDeclarationStatement)
 {
@@ -566,10 +567,10 @@ UNIT_TEST(ParseTypeDeclarationTest)
     Silteli::expect(is_valid);
 }
 
-UNIT_TEST(ParseBodyDeclarationTest)
+UNIT_TEST(ParseStructureDeclarationTest)
 {
     std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
-    std::string file_code = "body Point { var x: int var y: int }";
+    std::string file_code = "struct Point { var x: int var y: int }";
 
     files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
 
@@ -585,7 +586,7 @@ UNIT_TEST(ParseBodyDeclarationTest)
 
     Cosylang::Reporter::DiagnosticEngine eng(config, source);
 
-    Cosylang::Lexer::Lexer lexer("body Point { var x: int var y: int }");
+    Cosylang::Lexer::Lexer lexer("struct Point { var x: int var y: int }");
 
     auto tokens = lexer.tokenize();
 
@@ -596,8 +597,8 @@ UNIT_TEST(ParseBodyDeclarationTest)
     Cosylang::Parser::Node* node = parser.parseStatement();
 
     bool is_valid = node &&
-                    node->type == Cosylang::Parser::NodeType::BODY &&
-                    node->token->type == Cosylang::Lexer::Token::TokenType::BODY &&
+                    node->type == Cosylang::Parser::NodeType::STRUCT &&
+                    node->token->type == Cosylang::Lexer::Token::TokenType::STRUCT &&
 
                     node->first_child &&
                     node->first_child->type == Cosylang::Parser::NodeType::ID &&
@@ -895,7 +896,7 @@ UNIT_TEST(ParserTest)
     Silteli::expect(is_valid);
 }
 
-UNIT_TEST(ParseNamespaceWithoutBodyTest)
+UNIT_TEST(ParseNamespaceWithoutStructureTest)
 {
     std::string file_code = "namespace a";
     std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
@@ -929,9 +930,9 @@ UNIT_TEST(ParseNamespaceWithoutBodyTest)
     Silteli::expect(is_valid);
 }
 
-UNIT_TEST(ParseNamespaceWithBodyDeclarationTest)
+UNIT_TEST(ParseNamespaceWithStructureDeclarationTest)
 {
-    std::string file_code = "namespace a {\nbody Name\n{\n\n}\n}";
+    std::string file_code = "namespace a {\n struct Name\n{\n\n}\n}";
     std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
     files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
 
@@ -963,14 +964,14 @@ UNIT_TEST(ParseNamespaceWithBodyDeclarationTest)
                     program->first_child->first_child->next_sibling->token->type == Cosylang::Lexer::Token::TokenType::LEFT_CURLY_BRACKET &&
 
                     program->first_child->first_child->next_sibling->first_child &&
-                    program->first_child->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::BODY &&
+                    program->first_child->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::STRUCT &&
                     program->first_child->first_child->next_sibling->first_child->first_child &&
                     program->first_child->first_child->next_sibling->first_child->first_child->token->name == "Name";
 
     Silteli::expect(is_valid);
 }
 
-UNIT_TEST(ParseModuleWithoutBodyTest)
+UNIT_TEST(ParseModuleWithoutStructureTest)
 {
     std::string file_code = "module a";
     std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
@@ -1004,9 +1005,9 @@ UNIT_TEST(ParseModuleWithoutBodyTest)
     Silteli::expect(is_valid);
 }
 
-UNIT_TEST(ParseModuleWithBodyDeclarationTest)
+UNIT_TEST(ParseModuleWithStructureDeclarationTest)
 {
-    std::string file_code = "module a {\n body Name\n {\n\n } \n }";
+    std::string file_code = "module a {\n struct Name\n {\n\n } \n }";
     std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
     files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", file_code, 0));
 
@@ -1038,7 +1039,7 @@ UNIT_TEST(ParseModuleWithBodyDeclarationTest)
                     program->first_child->first_child->next_sibling->token->type == Cosylang::Lexer::Token::TokenType::LEFT_CURLY_BRACKET &&
 
                     program->first_child->first_child->next_sibling->first_child &&
-                    program->first_child->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::BODY &&
+                    program->first_child->first_child->next_sibling->first_child->type == Cosylang::Parser::NodeType::STRUCT &&
                     program->first_child->first_child->next_sibling->first_child->first_child &&
                     program->first_child->first_child->next_sibling->first_child->first_child->token->name == "Name";
 
