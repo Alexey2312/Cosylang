@@ -358,3 +358,37 @@ UNIT_TEST(ParseScopeResolution)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(ParseAccessToStructureMember)
+{
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    std::string code = "Structure.variable";
+
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("a.cosy", code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config
+    {
+        true,
+        false,
+        true,
+        std::cerr,
+    };
+
+    Cosylang::Reporter::DiagnosticEngine eng(config, source);
+
+    Cosylang::Lexer::Lexer lexer(code.c_str());
+    auto tokens = lexer.tokenize();
+    Arena arena(64);
+    Cosylang::Parser::Parser parser(tokens, arena, 0, eng);
+
+    Cosylang::Parser::Node* node = parser.parseExpression(0);
+
+    bool is_valid = node && node->type == Cosylang::Parser::NodeType::DOT &&
+                    node->first_child && node->first_child->type == Cosylang::Parser::NodeType::ID &&
+                    node->first_child->next_sibling && node->first_child->next_sibling->type == Cosylang::Parser::NodeType::ID;
+
+
+    Silteli::expect(is_valid);
+}

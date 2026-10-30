@@ -224,6 +224,15 @@ Node* Parser::parseExpression(int left_binding_power)
             lhs = arena.alloc<Node>(NodeType::DOUBLE_COLON, next_token, lhs);
             break;
         }
+        if (next_token->type == Lexer::Token::TokenType::DOT)
+        {
+            consume();
+
+            Node* rhs = parseExpression(0);
+            lhs->next_sibling = rhs;
+            lhs = arena.alloc<Node>(NodeType::DOT, next_token, lhs);
+            break;
+        }
 
         int right_binding_power = getInfixBindingPower(next_token->type);
 
