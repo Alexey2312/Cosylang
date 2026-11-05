@@ -11,6 +11,7 @@ set(PROJECT_SOURCES
     src/diagnostics/error-reporter.cpp
     src/frontend/semantic/scope.cpp
     src/frontend/semantic/module-manager.cpp
+    src/frontend/semantic/declarations-collector.cpp
 
     tests/diagnostics-tests/reporter-tests.cpp
     tests/utills-tests/arena-allocator/arena-alloc-test.cpp
@@ -19,6 +20,7 @@ set(PROJECT_SOURCES
     tests/parser-tests/parse-keyword-tests.cpp
     tests/semantic-tests/scope-tests.cpp
     tests/semantic-tests/module-manager-tests.cpp
+    tests/semantic-tests/declarations-collector-tests.cpp
 
 )
 

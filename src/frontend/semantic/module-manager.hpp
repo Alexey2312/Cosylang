@@ -1,10 +1,14 @@
 #pragma once
 
+#include <string>
 #include <unordered_map>
 #include "module.hpp"
+#include "scope.hpp"
 
 namespace Cosylang::Semantic
 {
+
+struct Module;
 
 class ModuleManager
 {

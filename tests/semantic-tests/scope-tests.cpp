@@ -8,10 +8,7 @@ UNIT_TEST(ScopeInsertVariableTest)
 {
     Cosylang::Semantic::Scope scope(nullptr);
 
-    Cosylang::Semantic::Symbol var_sym;
-    var_sym.name = "x";
-    var_sym.kind = Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE};
-    var_sym.visibility = Cosylang::Semantic::Visibility::PRIVATE;
+    Cosylang::Semantic::Symbol var_sym("x", Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE}, nullptr,  Cosylang::Semantic::Visibility::PRIVATE);
 
     scope.loadDeclaration("x", &var_sym);
 
@@ -26,13 +23,9 @@ UNIT_TEST(ScopeVariableRedefinitionTest)
 {
     Cosylang::Semantic::Scope scope(nullptr);
 
-    Cosylang::Semantic::Symbol var1;
-    var1.name = "count";
-    var1.kind = Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE};
+    Cosylang::Semantic::Symbol var1("count", Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE});
 
-    Cosylang::Semantic::Symbol var2;
-    var2.name = "count";
-    var2.kind = Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE};
+    Cosylang::Semantic::Symbol var2("count", Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE});
 
     auto old_buffer = std::cerr.rdbuf(std::cerr.rdbuf());
 
@@ -52,9 +45,7 @@ UNIT_TEST(ScopeParentHierarchyTest)
     Cosylang::Semantic::Scope global_scope(nullptr);
     Cosylang::Semantic::Scope local_scope(&global_scope);
 
-    Cosylang::Semantic::Symbol global_sym;
-    global_sym.name = "global_var";
-    global_sym.kind = Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE};
+    Cosylang::Semantic::Symbol global_sym("global_var", Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE});
 
     global_scope.loadDeclaration("global_var", &global_sym);
 
@@ -70,9 +61,7 @@ UNIT_TEST(ScopeLookupTest)
     Cosylang::Semantic::Scope scope1(nullptr);
     Cosylang::Semantic::Scope scope2(&scope1);
 
-    Cosylang::Semantic::Symbol symbol;
-    symbol.name = "value";
-    symbol.kind = Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE};
+    Cosylang::Semantic::Symbol symbol("value", Cosylang::Semantic::Kind{Cosylang::Semantic::SymbolKind::VARIABLE});
 
     scope1.loadDeclaration("value", &symbol);
 

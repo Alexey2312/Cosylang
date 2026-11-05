@@ -60,6 +60,7 @@ struct FunctionKind
 struct StructKind
 {
     SymbolKind type_name = SymbolKind::PARAM;
+    Scope* scope = nullptr;
     Type type = Type("struct", TypeKind::STRUCT);
 };
 
@@ -72,6 +73,9 @@ struct Symbol
     bool is_export = false;
 
     Symbol() = default;
+
+    Symbol(std::string this_name, std::variant<Kind, VariableKind, ParameterKind, FunctionKind, StructKind> this_kind, Parser::Node* this_node = nullptr, Visibility this_visibility = Visibility::PRIVATE, bool this_is_export = false)
+        : name(this_name), kind(this_kind), node(this_node), visibility(this_visibility), is_export(this_is_export) {}
 
     Symbol(Symbol&& other) noexcept
         : name(std::move(other.name)),

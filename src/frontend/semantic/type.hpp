@@ -1,7 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace Cosylang::Semantic
 {
@@ -16,7 +18,8 @@ enum class TypeKind
     FUNCTION,
     STRUCT,
     MODULE,
-    TYPE_ALIAS
+    TYPE_ALIAS,
+    AUTO
 };
 
 struct Type
@@ -50,8 +53,53 @@ struct Type
         }
     }
 
-    Type(std::string this_name, TypeKind this_kind, std::vector<std::string> this_convertible_types = {})
-        : name(this_name), kind(this_kind), convertible_types(this_convertible_types) {fillConvertibleTypes(this_kind);}
+    bool isConvertible(std::string second_type)
+    {
+        fillConvertibleTypes(kind);
+        return std::find(convertible_types.begin(), convertible_types.end(), second_type) != convertible_types.end();
+    }
+
+    void defineTypeKindByName()
+    {
+        if (name == "int8" || name == "int16" || name == "int32" || name == "int64" || name == "int128")
+        {
+            kind = TypeKind::INT;
+        }
+        else if (name == "float32" || name == "float64" || name == "float128")
+        {
+            kind = TypeKind::FLOAT;
+        }
+        else if (name == "string")
+        {
+            kind = TypeKind::STRING;
+        }
+        else if (name == "bool")
+        {
+            kind = TypeKind::BOOL;
+        }
+        else if (name == "auto")
+        {
+            kind = TypeKind::AUTO;
+        }
+        else if (name == "void")
+        {
+            kind = TypeKind::VOID;
+        }
+        else
+        {
+            std::cerr << "Cannot define type kind by name! Name: " + name + "\n";
+        }
+    }
+
+    Type(std::string this_name, TypeKind this_kind = TypeKind::VOID, std::vector<std::string> this_convertible_types = {})
+        : name(this_name), kind(this_kind), convertible_types(this_convertible_types)
+        {
+            fillConvertibleTypes(this_kind);
+            if (this_kind == TypeKind::VOID)
+            {
+                defineTypeKindByName();
+            }
+        }
 };
 
 } //namespace Cosylang::Semantic
