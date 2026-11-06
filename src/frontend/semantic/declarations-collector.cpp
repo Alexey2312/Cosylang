@@ -55,6 +55,7 @@ void DeclarationsCollector::collectDeclarations(const Parser::Node* program_node
             }
         }
     }
+    manager.loadModule(*current_module);
 }
 
 } //namespace Cosylang::Semantic
