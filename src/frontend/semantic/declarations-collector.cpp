@@ -2,6 +2,7 @@
 #include "module.hpp"
 #include "symbol.hpp"
 #include "type.hpp"
+#include <string>
 
 namespace Cosylang::Semantic
 {
@@ -179,6 +180,35 @@ void DeclarationsCollector::collectFunction(Parser::Node* function_node, Scope* 
     parent_scope->loadDeclaration(function_name, symbol);
 }
 
+void DeclarationsCollector::collectStructure(Parser::Node* struct_node, Scope* parent_scope)
+{
+    if (struct_node == nullptr || struct_node->type != Parser::NodeType::STRUCT || parent_scope == nullptr)
+    {
+        return;
+    }
+
+    if (struct_node->first_child->type != Parser::NodeType::ID)
+    {
+        std::cerr << "Invalid structure AST \n";
+    }
+
+    std::string struct_name = std::string(struct_node->first_child->token->name);
+
+    if (struct_node->first_child->next_sibling->type != Parser::NodeType::CODE_BLOCK)
+    {
+        std::cerr << "Invalid structure AST \n";
+    }
+
+    Scope* struct_scope = visitScope(struct_node->first_child->next_sibling);
+
+    Symbol* symbol = arena.alloc<Symbol>();
+    symbol->name = struct_name;
+
+    StructKind struct_kind = {SymbolKind::STRUCT, struct_scope};
+
+    symbol->kind = std::move(struct_kind);
+    parent_scope->loadDeclaration(struct_name, symbol);
+}
 
 Scope* DeclarationsCollector::visitScope(Parser::Node* scope_node)
 {

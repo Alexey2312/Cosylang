@@ -16,8 +16,9 @@ struct DeclarationsCollector
     Module* current_module = nullptr;
 
     void collectVariable(Parser::Node* variable_node, Scope* parent_scope);
-    void collectParam(Parser::Node* variable_node, Scope* parent_scope);
-    void collectFunction(Parser::Node* variable_node, Scope* parent_scope);
+    void collectParam(Parser::Node* param_node, Scope* parent_scope);
+    void collectFunction(Parser::Node* function_node, Scope* parent_scope);
+    void collectStructure(Parser::Node* struct_node, Scope* parent_scope);
 
     Scope* visitScope(Parser::Node* scope_node);
     void collectDeclarations(const Parser::Node* program_node); // fill modules in manager

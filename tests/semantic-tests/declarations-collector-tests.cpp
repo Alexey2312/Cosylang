@@ -124,3 +124,77 @@ UNIT_TEST(DeclarationsCollectorFunctionWithParamsTest)
 
     Silteli::expect(is_valid);
 }
+
+UNIT_TEST(DeclarationsCollectorStructureTest)
+{
+    const std::string code = "struct Point { var x: int32 }";
+
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>(
+        "test.cosy",
+        code,
+        0
+    ));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config{
+        true,
+        false,
+        true,
+        std::cerr
+    };
+
+    Cosylang::Reporter::DiagnosticEngine diagnostics(config, source);
+
+    Cosylang::Lexer::Lexer lexer(code.c_str());
+    auto tokens = lexer.tokenize();
+
+    Arena parser_arena(1024);
+    Cosylang::Parser::Parser parser(
+        tokens,
+        parser_arena,
+        0,
+        diagnostics
+    );
+
+    Cosylang::Parser::Node* structure_node = parser.parseStatement();
+
+    Arena semantic_arena(2048);
+    Cosylang::Semantic::ModuleManager manager;
+
+    Cosylang::Semantic::DeclarationsCollector collector(semantic_arena, manager);
+
+    Cosylang::Semantic::Scope parent_scope{};
+
+    if (structure_node != nullptr)
+    {
+        collector.collectStructure(structure_node, &parent_scope);
+    }
+
+    bool is_valid =
+        structure_node != nullptr &&
+        structure_node->type == Cosylang::Parser::NodeType::STRUCT &&
+        parent_scope.table.count("Point") == 1;
+
+    if (is_valid)
+    {
+        Cosylang::Semantic::Symbol* symbol = parent_scope.table.at("Point");
+
+        is_valid =
+            symbol != nullptr &&
+            symbol->name == "Point" &&
+            std::holds_alternative<Cosylang::Semantic::StructKind>(symbol->kind);
+
+        if (is_valid)
+        {
+            const auto& struct_kind = std::get<Cosylang::Semantic::StructKind>(symbol->kind);
+
+            is_valid =
+                struct_kind.scope != nullptr &&
+                struct_kind.scope->table.count("x") == 1;
+        }
+    }
+
+    Silteli::expect(is_valid);
+}
