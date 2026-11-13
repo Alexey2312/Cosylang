@@ -13,10 +13,13 @@ struct DeclarationsCollector
 {
     Arena& arena;
     ModuleManager& manager;
-    Scope* current_scope = nullptr;
     Module* current_module = nullptr;
 
-    void collectVariable(Parser::Node* variable_node);
+    void collectVariable(Parser::Node* variable_node, Scope* parent_scope);
+    void collectParam(Parser::Node* variable_node, Scope* parent_scope);
+    void collectFunction(Parser::Node* variable_node, Scope* parent_scope);
+
+    Scope* visitScope(Parser::Node* scope_node);
     void collectDeclarations(const Parser::Node* program_node); // fill modules in manager
 
     DeclarationsCollector(Arena& this_arena, ModuleManager& this_modules)

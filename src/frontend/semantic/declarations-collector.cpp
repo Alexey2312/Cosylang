@@ -6,7 +6,7 @@
 namespace Cosylang::Semantic
 {
 
-void DeclarationsCollector::collectVariable(Parser::Node* variable_node)
+void DeclarationsCollector::collectVariable(Parser::Node* variable_node, Scope* parent_scope)
 {
     if (variable_node->type != Parser::NodeType::VAR)
     {
@@ -31,30 +31,198 @@ void DeclarationsCollector::collectVariable(Parser::Node* variable_node)
     }
     Symbol* symbol = arena.alloc<Symbol>();
     symbol->name = variable_name;
-    symbol->kind = VariableKind{SymbolKind::VARIABLE, Type(type_name, TypeKind::VOID)};
-    current_module->scope->loadDeclaration(variable_name, symbol);
+    symbol->kind = VariableKind{SymbolKind::VARIABLE, Type(type_name)};
+    parent_scope->loadDeclaration(variable_name, symbol);
 }
 
-void DeclarationsCollector::collectDeclarations(const Parser::Node* program_node)
+void DeclarationsCollector::collectParam(Parser::Node* param_node, Scope* parent_scope)
 {
-    Parser::Node* current_node = program_node->first_child;
-    current_module = arena.alloc<Module>("program", current_scope);
+    if (param_node == nullptr || parent_scope == nullptr)
+    {
+        return;
+    }
+
+    Parser::Node* declaration_node = nullptr;
+
+    Parser::Node* colon_node = nullptr;
+    Parser::Node* current_node = param_node;
+
     while (current_node)
+    {
+        if (current_node == nullptr)
+        {
+            return;
+        }
+
+        if (current_node->type == Parser::NodeType::COLON)
+        {
+            colon_node = current_node;
+            break;
+        }
+
+        current_node = current_node->first_child;
+        continue;
+    }
+
+    declaration_node = colon_node;
+
+    Parser::Node* name_node = declaration_node->first_child;
+    Parser::Node* type_node = name_node->next_sibling;
+
+    std::string param_name = std::string(name_node->token->name);
+    std::string type_name = std::string(type_node->token->name);
+
+    Symbol* symbol = arena.alloc<Symbol>();
+
+    symbol->name = param_name;
+    symbol->kind = ParameterKind{SymbolKind::PARAM, Type(type_name)};
+
+    parent_scope->loadDeclaration(param_name, symbol);
+}
+
+void DeclarationsCollector::collectFunction(Parser::Node* function_node, Scope* parent_scope)
+{
+    if (function_node == nullptr || function_node->type != Parser::NodeType::FUNC || parent_scope == nullptr)
+    {
+        return;
+    }
+
+    Parser::Node* declaration = function_node->first_child;
+
+    if (declaration == nullptr)
+    {
+        std::cerr << "Invalid function AST \n";
+        return;
+    }
+
+    std::string function_name;
+    std::string returning_type_name = "void";
+
+    Parser::Node* params_node = nullptr;
+    Parser::Node* body_node = nullptr;
+
+    if (declaration->type == Parser::NodeType::COLON)
+    {
+        Parser::Node* name_node = declaration->first_child;
+
+        if (name_node == nullptr || name_node->token == nullptr)
+        {
+            std::cerr << "Invalid function AST \n";
+            return;
+        }
+
+        function_name = name_node->token->name;
+        params_node = name_node->next_sibling;
+
+        if (params_node == nullptr)
+        {
+            std::cerr << "Invalid function AST \n";
+            return;
+        }
+
+        body_node = params_node->next_sibling;
+    }
+    else if (declaration->type == Parser::NodeType::ID)
+    {
+        function_name = declaration->token->name;
+        returning_type_name = "void";
+
+        params_node = declaration->next_sibling;
+
+        if (params_node == nullptr)
+        {
+            std::cerr << "Invalid function AST \n";
+            return;
+        }
+
+        body_node = params_node->next_sibling;
+    }
+    else
+    {
+        std::cerr << "Invalid function AST \n";
+        return;
+    }
+
+    if (body_node == nullptr || body_node->type != Parser::NodeType::CODE_BLOCK)
+    {
+        std::cerr << "Invalid function AST \n";
+        return;
+    }
+
+    Scope* function_scope = visitScope(body_node);
+
+    if (function_scope == nullptr)
+    {
+        std::cerr << "Failed to create a function scope\n";
+        return;
+    }
+
+    if (params_node->first_child != nullptr)
+    {
+        Parser::Node* current_param = params_node->first_child;
+
+        while (current_param != nullptr)
+        {
+            collectParam(current_param, function_scope);
+            current_param = current_param->next_sibling;
+        }
+    }
+
+    Symbol* symbol = arena.alloc<Symbol>();
+    symbol->name = function_name;
+
+    FunctionKind function_kind = {SymbolKind::FUNCTION, function_scope};
+
+    function_kind.returning_type = Type(returning_type_name, TypeKind::VOID);
+
+    symbol->kind = std::move(function_kind);
+    parent_scope->loadDeclaration(function_name, symbol);
+}
+
+
+Scope* DeclarationsCollector::visitScope(Parser::Node* scope_node)
+{
+    if (scope_node == nullptr)
+    {
+        return nullptr;
+    }
+
+    Scope* scope = arena.alloc<Scope>();
+
+    Parser::Node* current_node = scope_node->type == Parser::NodeType::CODE_BLOCK ? scope_node->first_child : scope_node;
+
+    while (current_node != nullptr)
     {
         switch (current_node->type)
         {
             case Parser::NodeType::VAR:
             {
-                collectVariable(current_node);
-                current_node = current_node->next_sibling ? current_node->next_sibling : current_node->first_child;
+                collectVariable(current_node, scope);
                 break;
             }
+
+            case Parser::NodeType::FUNC:
+            {
+                collectFunction(current_node, scope);
+                break;
+            }
+
             default:
             {
-                current_node = current_node->next_sibling ? current_node->next_sibling : current_node->first_child;
+                break;
             }
         }
+
+        current_node = current_node->next_sibling;
     }
+
+    return scope;
+}
+
+void DeclarationsCollector::collectDeclarations(const Parser::Node* program_node)
+{
+    current_module = arena.alloc<Module>("program", nullptr);
+    current_module->scope = visitScope(program_node->first_child);
     manager.loadModule(*current_module);
 }
 

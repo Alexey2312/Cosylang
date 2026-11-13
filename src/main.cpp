@@ -139,7 +139,7 @@ public:
             return 1;
         }
 
-        std::vector<std::string> input_filesPaths;
+        std::vector<std::string> input_files_paths;
         std::string outputFile = "out.o";
 
         for (int i = 1; i < argc; ++i)
@@ -169,7 +169,7 @@ public:
             }
             else if (i + 1 < argc)
             {
-                input_filesPaths.emplace_back(arg);
+                input_files_paths.emplace_back(arg);
             }
             else
             {
@@ -177,7 +177,7 @@ public:
                 return 0;
             }
         }
-        compileFiles(input_filesPaths);
+        compileFiles(input_files_paths);
         return 0;
     }
 };

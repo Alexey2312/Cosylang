@@ -483,7 +483,6 @@ Node* Parser::parseFunctionDeclaration()
     Node* params_node = parseParams();
     name_node->next_sibling = params_node;
 
-    Node* last_header_node = params_node;
     if (peek()->type == Lexer::Token::TokenType::COLON)
     {
         const Lexer::Token::Token* colon_token = consume();
@@ -492,12 +491,13 @@ Node* Parser::parseFunctionDeclaration()
         Node* return_type = arena.alloc<Node>(NodeType::ID, type_token);
         Node* colon_node = arena.alloc<Node>(NodeType::COLON, colon_token, return_type);
 
-        params_node->next_sibling = colon_node;
-        last_header_node = colon_node;
+        colon_node->first_child = name_node;
+        func_node->first_child = colon_node;
+
     }
 
-    Node* structure_node = parseCodeBlock();
-    last_header_node->next_sibling = structure_node;
+    Node* function_body_node = parseCodeBlock();
+    params_node->next_sibling = function_body_node;
 
     return func_node;
 }

@@ -11,7 +11,7 @@ void Scope::loadDeclaration(const std::string& name, Symbol* symbol)
 
     if (it == table.end())
     {
-        table.emplace(std::move(name), symbol);
+        table.insert({name, symbol});
         return;
     }
 

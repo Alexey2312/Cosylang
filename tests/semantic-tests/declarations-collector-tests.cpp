@@ -41,7 +41,6 @@ UNIT_TEST(DeclarationsCollectorCollectVariableTest)
     Cosylang::Semantic::ModuleManager manager;
 
     Cosylang::Semantic::DeclarationsCollector collector(semantic_arena, manager);
-    collector.current_scope = &scope;
 
     collector.collectDeclarations(program);
 
@@ -49,6 +48,79 @@ UNIT_TEST(DeclarationsCollectorCollectVariableTest)
         manager.findModule("program") &&
         collector.current_module->scope != nullptr &&
         collector.current_module->scope->table.find("x") != collector.current_module->scope->table.end();
+
+    Silteli::expect(is_valid);
+}
+
+UNIT_TEST(DeclarationsCollectorFunctionWithParamsTest)
+{
+    const std::string source_code = "func add(a: int32, b: int32) : void \n { \n  var result: int32 \n}";
+
+    std::vector<std::unique_ptr<Cosylang::Source::FileBuffer>> files;
+    files.push_back(std::make_unique<Cosylang::Source::FileBuffer>("test.cosy", source_code, 0));
+
+    Cosylang::Source::SourceManager source(std::move(files));
+
+    Cosylang::Reporter::DiagnosticConfig config{
+        true,
+        false,
+        true,
+        std::cerr
+    };
+
+    Cosylang::Reporter::DiagnosticEngine diagnostics(config, source);
+
+    Cosylang::Lexer::Lexer lexer(source_code.c_str());
+    auto tokens = lexer.tokenize();
+
+    Arena parser_arena(1024);
+
+    Cosylang::Parser::Parser parser(
+        tokens,
+        parser_arena,
+        0,
+        diagnostics
+    );
+
+    const Cosylang::Parser::Node* program = parser.parse();
+
+    Arena semantic_arena(2048);
+    Cosylang::Semantic::ModuleManager manager;
+
+    Cosylang::Semantic::DeclarationsCollector collector(semantic_arena, manager);
+
+    if (program == nullptr)
+    {
+        std::cerr << "Program node is nullptr \n";
+        Silteli::expect(false);
+    }
+
+    collector.collectDeclarations(program);
+
+    bool is_valid =
+        program != nullptr &&
+        collector.current_module != nullptr &&
+        collector.current_module->scope != nullptr;
+
+    if (is_valid)
+    {
+        auto function_it =
+            collector.current_module->scope->table.find("add");
+
+        is_valid =
+            function_it != collector.current_module->scope->table.end() &&
+            function_it->second != nullptr &&
+            std::holds_alternative<Cosylang::Semantic::FunctionKind>(function_it->second->kind);
+    }
+
+    if (is_valid)
+    {
+        const auto& function_kind = std::get<Cosylang::Semantic::FunctionKind>(collector.current_module->scope->table.at("add")->kind);
+
+        auto* function_scope = function_kind.scope;
+
+        is_valid = function_scope != nullptr && function_scope->table.count("a") == 1;
+    }
 
     Silteli::expect(is_valid);
 }
